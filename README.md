@@ -37,8 +37,9 @@ Die Navigation kann anschließend mit einer eigenen rekursiven Function verarbei
 //
 function myNavi($data = array())
 {
+  $output = array();
     foreach ($data as $cat) {
-        $subnavi = $li = $ul = "";
+        $subnavi = $catname = $li = $ul = "";
         if ($cat['level'] == 0 && $cat['hasChildren'] == true)
          {
             $li = ' class="uk-parent"';
