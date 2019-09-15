@@ -29,7 +29,7 @@ Bei true werden Offline-Kategirien ignoriert.
 
 Die Navigation kann anschließend mit einer eigenen rekursiven Function verarbeitet und gestaltet werden. 
 
-**Beispiel**
+**Beispiel Function zum Auslesen des Arrays**
 
 ```php
 <?php
@@ -69,15 +69,22 @@ function myNavi($data = array())
     }
     return join("\n", $output);
 }
+```
 
+**Navigation mit eigener Funktiom erzeugen**
 
+```php
 // Navigation erzeugen
 $navigation = '<div>
     <ul class="uk-nav-default uk-nav-parent-icon" uk-nav>'
     .myNavi(navArray($start = 0, $depth = 4, true)).
     '</ul>
 </div>';
-?>
+```
+
+**Mögliche Ausgabe (hier UiKit)**
+
+```php
 <div class="nav" data-uk-sticky="top: 200; animation: uk-animation-slide-top">
     <nav class="uk-navbar-container" data-uk-navbar>
         <div class="uk-navbar-left">
