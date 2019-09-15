@@ -5,31 +5,31 @@ Das AddOn liefert eine Function zur Generierung eines Navigationsarrays.
 
 In YCOM definierte Rechte werden berücksichtigt
 
-***Aufruf:***
+## Aufruf:
 ```php
 navArray($start = 0, $depth = 0, $ignoreOffline = true)
 ```
 
-***$Start***
+**$Start**
 
 numerisch
 
 Hier wird die Id der Start-Kategorie anegegben ab der das Array erzeugt wird
 
-***$depth***
+**$depth**
 numerisch
 
 Hier wird die gewünschte Tiefe der Navigation festgelegt
 
-***$ignoreOffline***
+**$ignoreOffline**
 
 true / false
 
-Bei true werden Offline-Kategirien ignoriert. 
+Bei true werden Offline-Kategorien ignoriert. 
 
 Die Navigation kann anschließend mit einer eigenen rekursiven Function verarbeitet und gestaltet werden. 
 
-**Beispiel Function zum Auslesen des Arrays**
+## Beispiel Function zum Auslesen des Arrays**
 
 ```php
 <?php
