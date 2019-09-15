@@ -29,7 +29,7 @@ Bei true werden Offline-Kategorien ignoriert.
 
 Die Navigation kann anschließend mit einer eigenen rekursiven Function verarbeitet und gestaltet werden. 
 
-## Beispiel Function zum Auslesen des Arrays**
+## Beispiel Function zum Auslesen des Arrays
 
 ```php
 <?php
