@@ -3,6 +3,8 @@ Helper function zur Generierung von REDAXO-Navigationen
 
 Das AddOn liefert eine Function zur Generierung eines Navigationsarrays. 
 
+In YCOM definierte Rechte werden berücksichtigt
+
 ***Aufruf:***
 ```php
 navArray($start = 0, $depth = 0, $ignoreOffline = true)
