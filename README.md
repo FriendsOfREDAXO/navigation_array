@@ -47,7 +47,9 @@ function myNavi($data = array())
         if ($cat['hasChildren'] == true) {
             $sub = [];
             $sub[] = '<ul'.$ul.'>';
+            // Function ruft sich selbst auf sollten Kinder gefunden werden.
             $sub[] = myNavi($cat['children']);
+            // -------------------------------------------------------------
             $sub[] = '</ul>';
             $subnavi = join("\n", $sub);
         }
