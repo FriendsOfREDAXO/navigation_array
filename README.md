@@ -1,5 +1,5 @@
 # navigation_array
-Helper function for building navigations for REDAXO cms
+Helper function zur Generierung von REDAXO-Navigationen
 
 Das AddOn liefert eine Function zur Generierung eines Navigationsarrays. 
 
