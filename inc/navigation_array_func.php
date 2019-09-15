@@ -9,6 +9,7 @@ if (!function_exists('navArray')) {
         $result     = array();
         // Aktuelle Kategorie ermitteln
         $currentCat = rex_category::getCurrent();
+        $ycom_check = rex_addon::get('ycom')->getPlugin('auth')->isAvailable();
         if ($currentCat) {
             $currentCatpath = $currentCat->getPathAsArray();
             $currentCat_id  = $currentCat->getId();
@@ -37,6 +38,10 @@ if (!function_exists('navArray')) {
                 $catId             = $cat->getId();
                 $path              = $cat->getPathAsArray();
                 $listlevel         = count($path);
+                if ($ycom_check && !rex_ycom_auth::checkPerm($cat))
+                {
+                continue;
+                }
                 if ($listlevel > $depth) {
                     continue;
                 }
@@ -47,6 +52,7 @@ if (!function_exists('navArray')) {
                     $children['child'] = navArray($catId, $depth, $ignoreOffline = true, $depth_saved, $level);
                     $level--;
                 }
+
                 // Name der Kategorie
                 $catName = $cat->getName();
                 // Url ermitteln
@@ -74,3 +80,4 @@ if (!function_exists('navArray')) {
         return $result;
     }
 }
+
