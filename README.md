@@ -14,7 +14,11 @@ navArray($start = 0, $depth = 0, $ignoreOffline = true)
 
 numerisch
 
-Hier wird die Id der Start-Kategorie anegegben ab der das Array erzeugt wird
+Hier wird die Id der Start-Kategorie angegeben ab der das Array erzeugt wird.
+
+Das kann auch eine Mount-Id aus Yrewrite sein
+
+`rex_yrewrite::getDomainByArticleId(rex_article::getCurrentId(), rex_clang::getCurrentId())->getMountId();`
 
 **$depth**
 numerisch
