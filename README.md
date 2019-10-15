@@ -33,7 +33,9 @@ Bei true werden Offline-Kategorien ignoriert.
 
 Die Navigation kann anschließend mit einer eigenen rekursiven Function verarbeitet und gestaltet werden. 
 
-## Beispiel Function zum Auslesen des Arrays
+## Beispiel UIkit-Drop-Down
+
+**Navigations-Array auslesen**
 
 ```php
 <?php
@@ -105,4 +107,46 @@ $navigation = '<div>
         </div>
     </nav>
 </div>
+```
+
+
+## Beispiel: Breadcrumb 
+
+```php
+<?php 
+// UIkit Breadcrumb uses navigation_array
+function bc_uikit($data = array())
+{
+    foreach ($data as $cat) {
+        if ($cat['active'] == false)    
+        {
+            continue;
+        }  
+        if ($cat['hasChildren'] == true) {
+            $sub = [];
+            $sub[] = bc_uikit($cat['children']);
+            $subnavi = join("\n", $sub);
+        }       
+        $catname = $cat['catName'];
+        if ('REX_ARTICLE_ID' == $cat['catId']) {
+            $liclass = ' class="uk-disabled"';
+            $cat['url']='';
+        }
+        $catname = '<a href="'.$cat['url'].'">'.$catname.'</a>';     
+        if ($cat['active'] == true)       
+        {
+	         $output[] = '<li'.$liclass.'>' . $catname .'</li>'.$subnavi;
+
+        }
+    }
+    return join("\n", $output);
+}
+
+// Breadcrumb erzeugen
+echo  '
+    <ul class="uk-breadcrumb">'
+    .bc_uikit(navArray($start = 0, $depth = 0, true)).
+    '</ul>
+';
+?>
 ```
