@@ -1,7 +1,7 @@
 # Alle hier gesetzten Werte können über $addon->getProperty($key) abgefragt werden
 
 package: navigation_array
-version: '1.0.0-beta1'
+version: '1.0.0'
 author: 'Friends Of REDAXO'
 supportpage: https://github.com/klxm
 info: 'FOR Navigation Array'
