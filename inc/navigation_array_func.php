@@ -7,7 +7,7 @@ if (!function_exists('navArray')) {
     function navArray($start = 0, $depth = 0, $ignoreOffline = true, $depth_saved = 0, $level = 0)
     {
         $result     = array();
-        // Aktuelle Kategorie ermitteln
+        // get current category
         $currentCat = rex_category::getCurrent();
         $ycom_check = rex_addon::get('ycom')->getPlugin('auth')->isAvailable();
         if ($currentCat) {
@@ -48,31 +48,37 @@ if (!function_exists('navArray')) {
                 if ($listlevel <= $depth && $depth != 0 && $cat && $cat->getChildren($ignoreoffline)) {
                     $level++;
                     $hasChildren       = true;
-                    // Unterkategorien ermitteln, function ruft sich selbst auf
+                    // get sub categories
                     $children['child'] = navArray($catId, $depth, $ignoreOffline = true, $depth_saved, $level);
                     $level--;
                 }
 
-                // Name der Kategorie
+                // set category name
                 $catName = $cat->getName();
-                // Url ermitteln
+                // determine Url
                 $catUrl  = $cat->getUrl();
                 // Aktiven Pfad ermitteln
                 $active  = false;
                 if (in_array($catId, $currentCatpath) or $currentCat_id == $catId) {
                     $active = true;
                 }
-                // Ergebnis speichern
+                // Set current category
+                $current = false; 
+                if ($currentCat_id == $catId) {
+                    $current = true;
+                }
+                // save result
                 $result[] = array(
                     'catId' => $catId,
                     'parentId' => $start,
                     'level' => $level,
-                    'active' => $active,
                     'catName' => $catName,
                     'url' => $catUrl,
                     'hasChildren' => $hasChildren,
                     'children' => $children['child'],
                     'path' => $path,
+                    'active' => $active,
+                    'current' => $current,
                     'catObject' => $cat
                 );
             }
