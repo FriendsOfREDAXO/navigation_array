@@ -45,7 +45,7 @@ if (!function_exists('navArray')) {
                 if ($listlevel > $depth) {
                     continue;
                 }
-                if ($listlevel <= $depth && $depth != 0 && $cat && $cat->getChildren($ignoreoffline)) {
+                if ($listlevel <= $depth && $depth != 0 && $cat && $cat->getChildren($ignoreOffline)) {
                     $level++;
                     $hasChildren       = true;
                     // get sub categories
