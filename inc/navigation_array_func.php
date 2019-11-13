@@ -4,7 +4,7 @@
 // Alle weiteren Angaben dienen der internen Verarbeitung
 // Alle weiteren Informationen aus rex_structure findet man in catObject
 if (!function_exists('navArray')) {
-    function navArray($start = 0, $depth = 0, $ignoreOffline = true, $depth_saved = 0, $level = 0)
+    function navArray($start = 0, $depth = 0, $ignoreOfflines = true, $depth_saved = 0, $level = 0)
     {
         $result     = array();
         // get current category
@@ -21,18 +21,19 @@ if (!function_exists('navArray')) {
             $startCat  = rex_category::get($start);
             $startPath = $startCat->getPathAsArray();
             $depth     = count($startPath) + $depth;
-            $startCats = $startCat->getChildren($ignoreoffline);
+            $startCats = $startCat->getChildren($ignoreOfflines);
             if ($depth_saved != 0) {
                 $depth = $depth_saved;
             } else {
                 $depth_saved = $depth;
             }
         } else {
-            $startCats = rex_category::getRootCategories(true);
+            $startCats = rex_category::getRootCategories($ignoreOfflines);
             $depth     = $depth;
         }
         if ($startCats) {
             foreach ($startCats as $cat) {
+
                 $children['child'] = array();
                 $hasChildren       = false;
                 $catId             = $cat->getId();
@@ -45,11 +46,11 @@ if (!function_exists('navArray')) {
                 if ($listlevel > $depth) {
                     continue;
                 }
-                if ($listlevel <= $depth && $depth != 0 && $cat && $cat->getChildren($ignoreOffline)) {
+                if ($listlevel <= $depth && $depth != 0 && $cat && $cat->getChildren($ignoreOfflines)) {
                     $level++;
                     $hasChildren       = true;
                     // get sub categories
-                    $children['child'] = navArray($catId, $depth, $ignoreOffline = true, $depth_saved, $level);
+                    $children['child'] = navArray($catId, $depth, $ignoreOfflines, $depth_saved, $level);
                     $level--;
                 }
 
@@ -81,9 +82,11 @@ if (!function_exists('navArray')) {
                     'current' => $current,
                     'catObject' => $cat
                 );
+
             }
         }
         return $result;
     }
 }
+
 
