@@ -7,7 +7,7 @@ In YCOM definierte Rechte werden berücksichtigt
 
 ## Aufruf:
 ```php
-navArray($start = 0, $depth = 0, $ignoreOffline = true)
+navArray($start = 0, $depth = 0, $ignoreOfflines = true)
 ```
 
 **$Start**
