@@ -3,7 +3,7 @@
 package: navigation_array
 version: '1.0.2'
 author: 'Friends Of REDAXO'
-supportpage: https://github.com/klxm
+supportpage: https://github.com/FriendsOfREDAXO/navigation_array
 info: 'FOR Navigation Array'
 
 requires:
