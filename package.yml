@@ -7,5 +7,5 @@ supportpage: https://github.com/FriendsOfREDAXO/navigation_array
 info: 'FOR Navigation Array'
 
 requires:
-    redaxo: '>=5.8.0'
+    redaxo: '^5.8.0'
     
