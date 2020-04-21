@@ -23,7 +23,8 @@ Das kann auch eine Mount-Id aus Yrewrite sein
 **$depth**
 numerisch
 
-Hier wird die gewünschte Tiefe der Navigation festgelegt
+Hier wird die gewünschte Tiefe der Navigation festgelegt, wobei 0 für die Hauptebene root und alle weiteren für Ebenen stehen. 
+Also 1 wäre die erste Unterebene. 
 
 **$ignoreOffline**
 
