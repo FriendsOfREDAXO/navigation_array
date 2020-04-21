@@ -5,6 +5,48 @@ Das AddOn liefert eine Function zur Generierung eines Navigationsarrays.
 
 In YCOM definierte Rechte werden berücksichtigt
 
+
+## Dump eines Navigation-Arrays: 
+
+```
+array:7 [▼
+    0 => array:11 [▶]
+    1 => array:11 [▶]
+    2 => array:11 [▶]
+    3 => array:11 [▶]
+    4 => array:11 [▼
+        "catId" => 43
+        "parentId" => 0
+        "level" => 0
+        "catName" => "Kontakt"
+        "url" => "/kontakt/"
+        "hasChildren" => true
+        "children" => array:2 [▼
+            0 => array:11 [▼
+                "catId" => 178
+                "parentId" => 43
+                "level" => 1
+                "catName" => "Kontaktformular"
+                "url" => "/kontakt/kontaktformular/"
+                "hasChildren" => false
+                "children" => []
+                "path" => array:1 [▶]
+                "active" => false
+                "current" => false
+                "catObject" => rex_category {#271 ▶}
+            ]
+            1 => array:11 [▶]
+        ]
+        "path" => []
+        "active" => true
+        "current" => true
+        "catObject" => rex_category {#123 ▶}
+    ]
+    5 => array:11 [▶]
+    6 => array:11 [▶]
+]
+```
+
 ## Aufruf:
 ```php
 navArray($start = 0, $depth = 0, $ignoreOfflines = true)
@@ -151,49 +193,3 @@ echo  '
 ';
 ?>
 ```
-
-Dump eines Navigation-Arrays: 
-
-```
-array:7 [▼
-    0 => array:11 [▶]
-    1 => array:11 [▶]
-    2 => array:11 [▶]
-    3 => array:11 [▶]
-    4 => array:11 [▼
-        "catId" => 43
-        "parentId" => 0
-        "level" => 0
-        "catName" => "Kontakt"
-        "url" => "/kontakt/"
-        "hasChildren" => true
-        "children" => array:2 [▼
-            0 => array:11 [▼
-                "catId" => 178
-                "parentId" => 43
-                "level" => 1
-                "catName" => "Kontaktformular"
-                "url" => "/kontakt/kontaktformular/"
-                "hasChildren" => false
-                "children" => []
-                "path" => array:1 [▶]
-                "active" => false
-                "current" => false
-                "catObject" => rex_category {#271 ▶}
-            ]
-            1 => array:11 [▶]
-        ]
-        "path" => []
-        "active" => true
-        "current" => true
-        "catObject" => rex_category {#123 ▶}
-    ]
-    5 => array:11 [▶]
-    6 => array:11 [▶]
-]
-```
-
-
-
-
-
