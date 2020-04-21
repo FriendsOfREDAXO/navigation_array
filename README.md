@@ -142,7 +142,7 @@ function bc_uikit($data = array())
     return join("\n", $output);
 }
 
-// Breadcrumb erzeugen
+// Breadcrumb erzeugen ($depth muss angegeben werden)
 echo  '
     <ul class="uk-breadcrumb">'
     .bc_uikit(navArray($start = 0, $depth = 8, true)).
