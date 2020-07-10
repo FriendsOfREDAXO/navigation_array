@@ -39,7 +39,8 @@ if (!function_exists('navArray')) {
                 $catId             = $cat->getId();
                 $path              = $cat->getPathAsArray();
                 $listlevel         = count($path);
-                if ($ycom_check && !rex_ycom_auth::checkPerm($cat))
+                
+                if ($ycom_check && !$cat->isPermitted())
                 {
                 continue;
                 }
@@ -88,5 +89,3 @@ if (!function_exists('navArray')) {
         return $result;
     }
 }
-
-
