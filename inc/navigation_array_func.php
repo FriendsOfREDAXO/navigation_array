@@ -4,7 +4,7 @@
 // Alle weiteren Angaben dienen der internen Verarbeitung
 // Alle weiteren Informationen aus rex_structure findet man in catObject
 if (!function_exists('navArray')) {
-    function navArray($start = 0, $depth = 0, $ignoreOfflines = true, $depth_saved = 0, $level = 0)
+    function navArray($start = 0, $depth = 0, $ignoreOfflines = true, $startCats = [], $depth_saved = 0, $level = 0)
     {
         $result     = array();
         // get current category
@@ -27,7 +27,7 @@ if (!function_exists('navArray')) {
             } else {
                 $depth_saved = $depth;
             }
-        } else {
+        } elseif (!$startCats) {
             $startCats = rex_category::getRootCategories($ignoreOfflines);
             $depth     = $depth;
         }
@@ -51,7 +51,7 @@ if (!function_exists('navArray')) {
                     $level++;
                     $hasChildren       = true;
                     // get sub categories
-                    $children['child'] = navArray($catId, $depth, $ignoreOfflines, $depth_saved, $level);
+                    $children['child'] = navArray($catId, $depth, $ignoreOfflines, [], $depth_saved, $level);
                     $level--;
                 }
 
