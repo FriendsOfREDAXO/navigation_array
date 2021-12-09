@@ -76,6 +76,68 @@ Bei true werden Offline-Kategorien ignoriert.
 
 Die Navigation kann anschließend mit einer eigenen rekursiven Function verarbeitet und gestaltet werden. 
 
+## Beispiel: Bootstrap 5 Navigation 
+
+<?php
+function bsnavi5($data = array())
+{
+    $output = array();
+    foreach ($data as $cat) {
+        // Defaults
+        $subnavi = $catname = $li = $active = $ul =  $link_extra = "";
+        $aclass = 'nav-link';
+        $li = ' class="nav-item"';
+
+        // Was passiert in Level 0?
+        if ($cat['level'] == 0 && $cat['hasChildren'] == true) {
+            $li = ' class="nav-item dropdown"';
+            $ul = ' class="dropdown-menu"';
+            $link_extra = 'id="ddm' . $cat['catId'] . '" data-bs-toggle="dropdown"';
+            $aclass = 'nav-link dropdown-toggle';
+        }
+        // Was ab Level 1 und die Kategorie hat keine Kinder
+        if ($cat['level'] == 1 && $cat['hasChildren'] == false) {
+            $li = ' class="nav-item dropdown"';
+            $aclass = 'dropdown-item';
+        }
+
+        // Prüfe ob die Kategorie Kinder hat und rufe die Funktion rekursiv auf
+        if ($cat['hasChildren'] == true) {
+            $sub = [];
+            // Erstelle den ul-Tag
+            $sub[] = '<ul' . $ul . '>';
+            // Function ruft sich selbst auf sollten Kinder gefunden werden.
+            $sub[] = bsnavi5($cat['children']);
+            // -------------------------------------------------------------
+            $sub[] = '</ul>';
+            $subnavi = join("\n", $sub);
+        }
+        // Auslesen des Kategorienamens
+        $catname = $cat['catName'];
+        // aktive Kategorie
+        if ($cat['active'] == true) {
+            $active = ' active';
+        }
+        // Generiere den Link
+        $catname = '<a class="' . $aclass . $active . '" href="' . $cat['url'] . '"' . $link_extra . '>' . $catname . '</a>';
+        // Generiere den li-Tag
+        $output[] = '<li ' . $li . '>' . $catname . $subnavi . '</li>';
+    }
+    return join("\n", $output);
+}
+
+?>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <ul class="navbar-nav ms-md-auto mb-0">
+            <?= bsnavi5(navArray($start = 0, $depth = 4, true)) ?>
+        </ul>
+    </div>
+</nav>
+</body>
+
+
 ## Beispiel UIkit-Drop-Down
 
 **Navigations-Array auslesen**
