@@ -78,6 +78,7 @@ Die Navigation kann anschließend mit einer eigenen rekursiven Function verarbei
 
 ## Beispiel: Bootstrap 5 Navigation 
 
+```php
 <?php
 function bsnavi5($data = array())
 {
@@ -136,7 +137,7 @@ function bsnavi5($data = array())
     </div>
 </nav>
 </body>
-
+```
 
 ## Beispiel UIkit-Drop-Down
 
