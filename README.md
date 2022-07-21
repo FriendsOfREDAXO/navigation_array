@@ -132,7 +132,7 @@ function bsnavi5($data = array())
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <ul class="navbar-nav ms-md-auto mb-0">
-            <?= bsnavi5(navArray($start = 0, $depth = 4, true)) ?>
+            <?php echo bsnavi5(navArray($start = 0, $depth = 4, true)) ?>
         </ul>
     </div>
 </nav>
