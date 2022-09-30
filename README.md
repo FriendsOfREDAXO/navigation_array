@@ -145,75 +145,71 @@ function bsnavi5($data = array())
 
 ```php
 <?php
-
-//
-// UiKit-Aufklappmenü
-//
-function myNavi($data = array())
+// UIkit NAVIGATION uses navigation_array AddOn
+function myNavi_demo($data = array())
 {
-  $output = array();
+    $output = [];
     foreach ($data as $cat) {
-        $subnavi = $catname = $li = $ul = "";
-        if ($cat['level'] == 0 && $cat['hasChildren'] == true)
-         {
-            $li = ' class="uk-parent"';
-            $ul = ' class="uk-nav-sub"';
-         }
+        $subnavi = $liclass = $ul = "";
+        $subclass = 'uk-default';
+        if ($cat['level'] == 0 && $cat['hasChildren'] == true) {
+            $liclass = 'uk-parent ';
+            $ul = ' class="uk-nav uk-navbar-dropdown-nav"';
+            $subclass = 'uk-navbar-dropdown uk-margin-remove uk-padding-small';
+        }
         if ($cat['hasChildren'] == true) {
             $sub = [];
-            $sub[] = '<ul'.$ul.'>';
-            // Function ruft sich selbst auf sollten Kinder gefunden werden.
-            $sub[] = myNavi($cat['children']);
-            // -------------------------------------------------------------
+            $sub[] = '<div class="' . $subclass . '">';
+            $sub[] = '<ul' . $ul . '>';
+            $sub[] = myNavi_demo($cat['children']);
             $sub[] = '</ul>';
+            $sub[] = '</div>';
             $subnavi = join("\n", $sub);
         }
-        
         $catname = $cat['catName'];
-        
         if ($cat['active'] == true) {
-            $catname = '<strong>' . $catname . '</strong>';
+            $catname = '' . $catname . '';
+            $liclass .= 'uk-active';
         }
-        
-        $catname = '<a href="'.$cat['url'].'">'.$catname.'</a>';
-       
-        $output[] = '<li'.$li.'>' . $catname . $subnavi . '</li>';
+        if ($liclass != '') {
+            $liclass =  ' class="' . $liclass . '"';
+        }
+        $catname = '<a href="' . $cat['url'] . '">' . $catname . '</a>';
+        $output[] = '<li' . $liclass . '>' . $catname . $subnavi . '</li>';
     }
-    return join("\n", $output);
+
+    if (!empty($output)) {
+        return join("\n", $output);
+    }
 }
-```
-
-**Navigation mit eigener Funktiom erzeugen**
-
-```php
 // Navigation erzeugen
-$navigation = '<div>
-    <ul class="uk-nav-default uk-nav-parent-icon" uk-nav>'
-    .myNavi(navArray($start = 0, $depth = 4, true)).
+$navigation = '
+    <ul class="uk-navbar-nav">'
+    . myNavi_demo(navArray($start = 0, $depth = 4, true)) .
     '</ul>
-</div>';
-```
-
-**Mögliche Ausgabe (hier UiKit)**
-
-```php
-<div class="nav" data-uk-sticky="top: 200; animation: uk-animation-slide-top">
-    <nav class="uk-navbar-container" data-uk-navbar>
+';
+?>
+<!--- NAVI-BAR --->
+<div class="nav">
+    <nav class="uk-box-shadow-small uk-background-secondary uk-light " uk-navbar>
         <div class="uk-navbar-left">
-            <a class="uk-navbar-item uk-logo" href="/">LOGO</a>
+            <a class="uk-navbar-item uk-logo" title="Logo: <?=rex::getServerName()?>" href="/">
+            <img class="logo" name="Logo" src="<?=rex_url::media()?>logo.svg" alt="">
+            </a>
         </div>
+        <div class="uk-visible@m uk-navbar-center uk-text-large">
+            <?= $navigation; ?>
+        </div>
+
         <div class="uk-navbar-right">
-            <button class="uk-navbar-toggle" uk-icon="icon: menu; ratio: 2" type="button" uk-toggle="target: #sidebar-navi"></button>
-            <div id="sidebar-navi" uk-offcanvas="overlay: true; flip: false;">
-                <div class="uk-offcanvas-bar uk-dark">
-                    <button class="uk-offcanvas-close" type="button" uk-close></button>
-                    <?=$navigation;?>
-                </div>
-            </div>
+        <a class="uk-icon-button uk-margin-right" href="https://github.com/FriendsOfREDAXO" uk-icon="icon: github"></a>
+            REX_TEMPLATE[key=uikit_mobile_navi]
         </div>
     </nav>
 </div>
+<!--- ENDE NAVI-BAR --->
 ```
+
 
 
 ## Beispiel: Breadcrumb 
