@@ -203,7 +203,7 @@ $navigation = '
 
         <div class="uk-navbar-right">
         <a class="uk-icon-button uk-margin-right" href="https://github.com/FriendsOfREDAXO" uk-icon="icon: github"></a>
-            REX_TEMPLATE[key=uikit_mobile_navi]
+           
         </div>
     </nav>
 </div>
