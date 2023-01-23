@@ -228,13 +228,14 @@ function bc_uikit($data = array())
             $sub = [];
             $sub[] = bc_uikit($cat['children']);
             $subnavi = join("\n", $sub);
-        }       
+        } 
+	$url = ' href="'.$cat['url'].'"';
         $catname = $cat['catName'];
         if ('REX_ARTICLE_ID' == $cat['catId']) {
-            $liclass = ' class="uk-disabled"';
+            $liclass = ' class="uk-disabled" aria-current="page"';
             $cat['url']='';
         }
-        $catname = '<a href="'.$cat['url'].'">'.$catname.'</a>';     
+        $catname = '<a'.$url.'>'.$catname.'</a>';     
         if ($cat['active'] == true)       
         {
 	         $output[] = '<li'.$liclass.'>' . $catname .'</li>'.$subnavi;
