@@ -233,7 +233,7 @@ function bc_uikit($data = array())
         $catname = $cat['catName'];
         if ('REX_ARTICLE_ID' == $cat['catId']) {
             $liclass = ' class="uk-disabled" aria-current="page"';
-            $cat['url']='';
+            $url ='';
         }
         $catname = '<a'.$url.'>'.$catname.'</a>';     
         if ($cat['active'] == true)       
