@@ -76,6 +76,42 @@ Bei true werden Offline-Kategorien ignoriert.
 
 Die Navigation kann anschließend mit einer eigenen rekursiven Function verarbeitet und gestaltet werden. 
 
+## Beispiel 
+
+```php
+// Function to generate the navigation list
+function generateNavigationList($items) {
+    if (empty($items)) {
+        return '';
+    }
+
+    $output = '<ul>';
+    foreach ($items as $item) {
+        $output .= '<li>';
+        $output .= '<a href="' . $item['url'] . '">' . $item['catName'] . '</a>';
+
+        // Check if this item has children
+        if ($item['hasChildren']) {
+            $output .= generateNavigationList($item['children']);
+        }
+
+        $output .= '</li>';
+    }
+    $output .= '</ul>';
+
+    return $output;
+}
+
+// Generate the navigation list
+$navigationList = generateNavigationList($navigationArray);
+
+// Output the navigation list
+echo $navigationList;
+```
+
+
+
+
 ## Beispiel: Bootstrap 5 Navigation 
 
 ```php
