@@ -1,4 +1,5 @@
 <?php
+
 namespace FriendsOfRedaxo;
 
 class navigationArray
@@ -9,6 +10,8 @@ class navigationArray
     private $depthSaved;
     private $level;
     private $startCats; // Temporäre Variable für die Verarbeitung
+    private $categoryFilterCallback;
+
 
     public function __construct($start = 0, $depth = 2, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
     {
@@ -60,10 +63,21 @@ class navigationArray
 
         foreach ($this->startCats as $cat) {
             if (!$this->isCategoryPermitted($cat)) continue;
+
+            // Prüfen Sie, ob der Filter-Callback definiert ist und ob die Kategorie dem Filter entspricht
+            if (is_callable($this->categoryFilterCallback) && !call_user_func($this->categoryFilterCallback, $cat)) {
+                continue;
+            }
+
             $result[] = $this->processCategory($cat, $currentCatpath, $currentCat_id);
         }
-
         return array_filter($result);
+    }
+
+    public function setCategoryFilterCallback(callable $callback): self
+    {
+        $this->categoryFilterCallback = $callback;
+        return $this;
     }
 
     private function initializeStartCategory()
