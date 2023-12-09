@@ -1,19 +1,18 @@
-l<?php
+<?php
 class navArray
 {
     private $start;
     private $depth;
     private $ignoreOfflines;
-    private $startCats;
     private $depthSaved;
     private $level;
+    private $startCats; // Temporäre Variable für die Verarbeitung
 
-    public function __construct($start = 0, $depth = 2, $ignoreOfflines = true, $startCats = [], $depthSaved = 0, $level = 0)
+    public function __construct($start = 0, $depth = 2, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
     {
         $this->start = $start;
         $this->depth = $depth;
         $this->ignoreOfflines = $ignoreOfflines;
-        $this->startCats = $startCats;
         $this->depthSaved = $depthSaved;
         $this->level = $level;
     }
@@ -22,22 +21,22 @@ class navArray
     {
         $this->start = $start;
     }
+
     public function setDepth($depth): void
     {
         $this->depth = $depth;
     }
+
     public function setIgnore($ignore): void
     {
         $this->ignoreOfflines = $ignore;
     }
-    public function setStartCats($cats): void
-    {
-        $this->startCats = $cats;
-    }
+
     public function setDepthSaved($saved): void
     {
         $this->depthSaved = $saved;
     }
+
     public function setLevel($lvl): void
     {
         $this->level = $lvl;
@@ -67,7 +66,16 @@ class navArray
 
     private function initializeStartCategory()
     {
-        if ($this->start != 0) {
+        if (is_array($this->start)) {
+            $startCats = [];
+            foreach ($this->start as $startCatId) {
+                $startCat = rex_category::get($startCatId);
+                if ($startCat) {
+                    $startCats = array_merge($startCats, $startCat->getChildren($this->ignoreOfflines));
+                }
+            }
+            $this->startCats = $startCats;
+        } elseif ($this->start != 0) {
             $startCat = rex_category::get($this->start);
             $this->depth = count($startCat->getPathAsArray()) + $this->depth;
             $this->startCats = $startCat->getChildren($this->ignoreOfflines);
@@ -118,8 +126,8 @@ class navArray
         $result = $this->generate();
         $this->level--;
 
-        $this->start = $originalStart; // zurücksetzen der Startkategorie 
+        $this->start = $originalStart; // Setzen Sie die Startkategorie zurück
 
         return $result;
     }
-}
+    }
