@@ -1,7 +1,6 @@
-# navigation_array
-Helper function zur Generierung von REDAXO-Navigationen
+# navigationAarray
 
-Das AddOn liefert eine Function zur Generierung eines Navigationsarrays. 
+navigationArray ist Teil des FriendsOfRedaxo-Projekts. Die PHP-Class erstellt ein Array der Struktur zur einfacheren Generierung individueller Navigationen. 
 
 In YCOM definierte Rechte werden berücksichtigt
 
@@ -47,34 +46,50 @@ array:7 [▼
 ]
 ```
 
-## Aufruf:
+
+## Konstruktor
+
 ```php
-navArray($start = 0, $depth = 0, $ignoreOfflines = true)
+public function __construct($start = 0, $depth = 2, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
 ```
 
-**$Start**
+- **$start**: Startkategorie-ID oder Array von Kategorie-IDs. Standardmäßig `0` für Root-Kategorien.
+- **$depth**: Tiefenbegrenzung der Navigation. Standardmäßig `2`.
+- **$ignoreOfflines**: Bestimmt, ob offline Kategorien ignoriert werden sollen. Standardmäßig `true`.
+- **$depthSaved**: Interner Gebrauch für die Tiefenverwaltung. Standardmäßig `0`.
+- **$level**: Interner Gebrauch für die Levelverwaltung. Standardmäßig `0`.
 
-numerisch
+## Methoden
 
-Hier wird die Id der Start-Kategorie angegeben ab der das Array erzeugt wird.
+- `setStart($start)`: Setzt die Startkategorie.
+- `setDepth($depth)`: Setzt die maximale Tiefe.
+- `setIgnore($ignore)`: Bestimmt, ob Offline-Kategorien ignoriert werden sollen.
+- `setDepthSaved($saved)`: Setzt die gespeicherte Tiefe.
+- `setLevel($lvl)`: Setzt das aktuelle Level.
+- `create()`: Erzeugt eine neue Instanz der Klasse.
+- `generate()`: Generiert die Navigationsstruktur als Array.
 
-Das kann auch eine Mount-Id aus Yrewrite sein
+## Private Methoden
 
-`rex_yrewrite::getDomainByArticleId(rex_article::getCurrentId(), rex_clang::getCurrentId())->getMountId();`
+- `initializeStartCategory()`: Initialisiert die Startkategorie basierend auf den Konstruktorparametern.
+- `isCategoryPermitted($cat)`: Überprüft, ob eine Kategorie erlaubt ist (abhängig von YCom-Plugin).
+- `processCategory($cat, $currentCatpath, $currentCat_id)`: Verarbeitet eine einzelne Kategorie und baut ihre Struktur auf.
+- `generateSubcategories($parentCat)`: Generiert rekursiv Unterkategorien.
 
-**$depth**
-numerisch
+## Beispiel: Ausgabe des Arrays
 
-Hier wird die gewünschte Tiefe der Navigation festgelegt, wobei 0 für die Hauptebene (Level 0) steht. 
-Also $depth=1 listet bis zur ersten Unterebene (level 1). 
+```php
 
-**$ignoreOffline**
+// Initialisierung des NavigationArray mit Startkategorie-ID 0 und Tiefe 3
+$navArray = new FriendsOfRedaxo\navigationArray(0, 3);
 
-true / false
+// Generierung der Navigationsstruktur
+$result = $navArray->generate();
 
-Bei true werden Offline-Kategorien ignoriert. 
+// Ausgabe des Arrays
+dump($result);
+```
 
-Die Navigation kann anschließend mit einer eigenen rekursiven Function verarbeitet und gestaltet werden. 
 
 ## Beispiel 
 
@@ -102,14 +117,14 @@ function generateNavigationList($items) {
     return $output;
 }
 
+$navigationArray = new FriendsOfRedaxo\navigationArray(0, 3)->generate();
+
 // Generate the navigation list
 $navigationList = generateNavigationList($navigationArray);
 
 // Output the navigation list
 echo $navigationList;
 ```
-
-
 
 
 ## Beispiel: Bootstrap 5 Navigation 
@@ -162,13 +177,13 @@ function bsnavi5($data = array())
     }
     return join("\n", $output);
 }
-
+$navigationArray = new FriendsOfRedaxo\navigationArray(0, 4)->generate();
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <ul class="navbar-nav ms-md-auto mb-0">
-            <?php echo bsnavi5(navArray($start = 0, $depth = 4, true)) ?>
+            <?php echo bsnavi5(navArray($navigationArray) ?>
         </ul>
     </div>
 </nav>
@@ -219,9 +234,10 @@ function myNavi_demo($data = array())
     }
 }
 // Navigation erzeugen
+$navigationArray = new FriendsOfRedaxo\navigationArray(0, 4)->generate();
 $navigation = '
     <ul class="uk-navbar-nav">'
-    . myNavi_demo(navArray($start = 0, $depth = 4, true)) .
+    . myNavi_demo(navArray($navigationArray) .
     '</ul>
 ';
 ?>
@@ -282,10 +298,11 @@ function bc_uikit($data = array())
 }
 
 // Breadcrumb erzeugen ($depth muss angegeben werden)
+$navigationArray = new FriendsOfRedaxo\navigationArray(0, 4, 20)->generate();
 echo  '
     <nav aria-label="Breadcrumb">
     <ul class="uk-breadcrumb">'
-    .bc_uikit(navArray($start = 0, $depth = 8, true)).
+    .bc_uikit(navArray($navigationArray).
     '</ul>
     </nav>
 ';
