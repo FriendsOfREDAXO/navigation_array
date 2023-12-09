@@ -50,7 +50,7 @@ array:7 [▼
 ## Konstruktor
 
 ```php
-public function __construct($start = 0, $depth = 2, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
+public function __construct($start = 0, $depth = 2, $ignoreOfflines = true)
 ```
 
 - **$start**: Startkategorie-ID oder Array von Kategorie-IDs. Standardmäßig `0` für Root-Kategorien.
@@ -61,20 +61,11 @@ public function __construct($start = 0, $depth = 2, $ignoreOfflines = true, $dep
 
 ## Methoden
 
-- `setStart($start)`: Setzt die Startkategorie.
-- `setDepth($depth)`: Setzt die maximale Tiefe.
-- `setIgnore($ignore)`: Bestimmt, ob Offline-Kategorien ignoriert werden sollen.
-- `setDepthSaved($saved)`: Setzt die gespeicherte Tiefe.
-- `setLevel($lvl)`: Setzt das aktuelle Level.
-- `create()`: Erzeugt eine neue Instanz der Klasse.
+- `setStart($start)`: Setzt die Startkategorie/n. Eingabe als INT oder Array meehrerer Kategorien z.B: `[2, 3, 6]`
+- `setDepth($depth)`: Setzt die maximale Tiefe. (Bei 0 wird nichts ausgegeben) 
+- `setIgnore($ignore)`: Bestimmt, ob Offline-Kategorien ignoriert werden sollen, Standard: `true`.
 - `generate()`: Generiert die Navigationsstruktur als Array.
 
-## Private Methoden
-
-- `initializeStartCategory()`: Initialisiert die Startkategorie basierend auf den Konstruktorparametern.
-- `isCategoryPermitted($cat)`: Überprüft, ob eine Kategorie erlaubt ist (abhängig von YCom-Plugin).
-- `processCategory($cat, $currentCatpath, $currentCat_id)`: Verarbeitet eine einzelne Kategorie und baut ihre Struktur auf.
-- `generateSubcategories($parentCat)`: Generiert rekursiv Unterkategorien.
 
 ## Beispiel: Ausgabe des Arrays
 
