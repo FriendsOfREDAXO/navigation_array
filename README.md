@@ -1,4 +1,4 @@
-# navigationAarray
+# REDAXO navigationArray
 
 navigationArray ist Teil des FriendsOfRedaxo-Projekts. Die PHP-Class erstellt ein Array der Struktur zur einfacheren Generierung individueller Navigationen. 
 
