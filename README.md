@@ -300,25 +300,25 @@ echo  '
 ?>
 ```
 
-### CallbackFilter: `setCategoryFilterCallback`
+## CallbackFilter: `setCategoryFilterCallback`
 
 Hier ist eine hilfreiche Dokumentation für die Methode `setCategoryFilterCallback` in Ihrer `navigationArray` Klasse:
 
-#### Beschreibung
+### Beschreibung
 Die `setCategoryFilterCallback` Methode ermöglicht es, einen benutzerdefinierten Filter für die Kategorien zu definieren, die in der Navigation angezeigt werden sollen. Dieser Filter ist ein Callback, der für jede Kategorie aufgerufen wird. Wenn der Callback `true` zurückgibt, wird die Kategorie in die generierte Navigationsstruktur aufgenommen. Andernfalls wird sie übersprungen.
 
-#### Verwendung
+### Verwendung
 ```php
 setCategoryFilterCallback(callable $callback): self
 ```
 
-#### Parameter
+### Parameter
 - `$callback` - Ein `callable`, das als Filter-Callback dient. Dieser Callback nimmt ein Kategorie-Objekt als Parameter und gibt einen booleschen Wert zurück (`true` für die Aufnahme der Kategorie, `false` für deren Ausschluss).
 
-#### Rückgabewert
+### Rückgabewert
 Die Methode gibt das `navigationArray`-Objekt zurück, was das Methoden-Chainen ermöglicht.
 
-#### Beispiel
+### Beispiel
 Das folgende Beispiel zeigt, wie man einen Filter definieren kann, der alle Kategorien mit der Bezeichnung `ìrgendwas` herausfiltert:
 
 ```php
@@ -328,6 +328,6 @@ $navigation->setCategoryFilterCallback(function($cat) {
 });
 ```
 
-#### Tipp:
+### Tipp:
 - Der Filter-Callback sollte so effizient wie möglich gestaltet werden, um die Leistung nicht negativ zu beeinflussen, besonders bei großen Kategoriestrukturen.
 - Diese Methode erhöht die Flexibilität Ihrer Navigation, indem sie benutzerdefinierte Filterlogik ermöglicht.
