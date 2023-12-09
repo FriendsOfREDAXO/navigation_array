@@ -52,7 +52,7 @@ class navigationArray
     public function generate(): array
     {
         $result = [];
-        $currentCat = rex_category::getCurrent();
+        $currentCat = \rex_category::getCurrent();
         $currentCatpath = $currentCat ? $currentCat->getPathAsArray() : [];
         $currentCat_id = $currentCat ? $currentCat->getId() : 0;
 
@@ -71,30 +71,30 @@ class navigationArray
         if (is_array($this->start)) {
             $this->startCats = [];
             foreach ($this->start as $startCatId) {
-                $startCat = rex_category::get($startCatId);
+                $startCat = \rex_category::get($startCatId);
                 if ($startCat) {
                     // Füge nur die Hauptkategorie hinzu, nicht deren Kinder
                     $this->startCats[] = $startCat;
                 }
             }
         } elseif ($this->start != 0) {
-            $startCat = rex_category::get($this->start);
+            $startCat = \rex_category::get($this->start);
             if ($startCat) {
                 $this->depth = count($startCat->getPathAsArray()) + $this->depth;
                 $this->startCats = $startCat->getChildren($this->ignoreOfflines);
                 $this->depthSaved = $this->depthSaved ?: $this->depth;
             } else {
                 // Fallback, falls die angegebene Startkategorie nicht existiert
-                $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
+                $this->startCats = \rex_category::getRootCategories($this->ignoreOfflines);
             }
         } else {
-            $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
+            $this->startCats = \rex_category::getRootCategories($this->ignoreOfflines);
         }
     }
 
     private function isCategoryPermitted($cat): bool
     {
-        $ycom_check = rex_addon::get('ycom')->getPlugin('auth')->isAvailable();
+        $ycom_check = \rex_addon::get('ycom')->getPlugin('auth')->isAvailable();
         return !$ycom_check || $cat->isPermitted();
     }
 
