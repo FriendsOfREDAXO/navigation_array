@@ -1,5 +1,7 @@
 <?php
-class navArray
+namespace FriendsOfRedaxo;
+
+class navigationArray
 {
     private $start;
     private $depth;
