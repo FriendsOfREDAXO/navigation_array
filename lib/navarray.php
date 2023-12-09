@@ -95,11 +95,17 @@ class navArray
             : ['child' => []];
 
         return [
-            'catId' => $catId, 'parentId' => $this->start, 'level' => $this->level,
-            'catName' => $cat->getName(), 'url' => $cat->getUrl(),
-            'hasChildren' => !empty($children['child']), 'children' => $children['child'],
-            'path' => $path, 'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
-            'current' => $currentCat_id == $catId, 'catObject' => $cat
+            'catId' => $catId, 
+            'parentId' => $this->start, 
+            'level' => $this->level,
+            'catName' => $cat->getName(), 
+            'url' => $cat->getUrl(),
+            'hasChildren' => !empty($children['child']), 
+            'children' => $children['child'],
+            'path' => $path,
+            'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
+            'current' => $currentCat_id == $catId, 
+            'catObject' => $cat
         ];
     }
 
@@ -112,7 +118,7 @@ class navArray
         $result = $this->generate();
         $this->level--;
 
-        $this->start = $originalStart; // Setzen Sie die Startkategorie zurück
+        $this->start = $originalStart; // zurücksetzen der Startkategorie 
 
         return $result;
     }
