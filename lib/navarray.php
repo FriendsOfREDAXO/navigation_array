@@ -67,19 +67,24 @@ class navArray
     private function initializeStartCategory()
     {
         if (is_array($this->start)) {
-            $startCats = [];
+            $this->startCats = [];
             foreach ($this->start as $startCatId) {
                 $startCat = rex_category::get($startCatId);
                 if ($startCat) {
-                    $startCats = array_merge($startCats, $startCat->getChildren($this->ignoreOfflines));
+                    // Füge nur die Hauptkategorie hinzu, nicht deren Kinder
+                    $this->startCats[] = $startCat;
                 }
             }
-            $this->startCats = $startCats;
         } elseif ($this->start != 0) {
             $startCat = rex_category::get($this->start);
-            $this->depth = count($startCat->getPathAsArray()) + $this->depth;
-            $this->startCats = $startCat->getChildren($this->ignoreOfflines);
-            $this->depthSaved = $this->depthSaved ?: $this->depth;
+            if ($startCat) {
+                $this->depth = count($startCat->getPathAsArray()) + $this->depth;
+                $this->startCats = $startCat->getChildren($this->ignoreOfflines);
+                $this->depthSaved = $this->depthSaved ?: $this->depth;
+            } else {
+                // Fallback, falls die angegebene Startkategorie nicht existiert
+                $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
+            }
         } else {
             $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
         }
@@ -103,16 +108,16 @@ class navArray
             : ['child' => []];
 
         return [
-            'catId' => $catId, 
-            'parentId' => $this->start, 
+            'catId' => $catId,
+            'parentId' => $this->start,
             'level' => $this->level,
-            'catName' => $cat->getName(), 
+            'catName' => $cat->getName(),
             'url' => $cat->getUrl(),
-            'hasChildren' => !empty($children['child']), 
+            'hasChildren' => !empty($children['child']),
             'children' => $children['child'],
             'path' => $path,
             'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
-            'current' => $currentCat_id == $catId, 
+            'current' => $currentCat_id == $catId,
             'catObject' => $cat
         ];
     }
@@ -130,4 +135,4 @@ class navArray
 
         return $result;
     }
-    }
+}
