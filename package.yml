@@ -1,10 +1,10 @@
 package: navigation_array
-version: '2.0.0-dev'
+version: '2.0.0-beta1'
 author: 'Friends Of REDAXO'
 supportpage: https://github.com/FriendsOfREDAXO/navigation_array
 info: 'FOR Navigation Array'
 
 requires:
-    redaxo: '^5.8.0'
+    redaxo: '^5.15.0'
     php:
-        version: '>7.1'    
+        version: '>8.1'    
