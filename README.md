@@ -285,17 +285,12 @@ function bc_uikit($data = array())
 {
     $output = []; // Initialisierung der Output-Variable
     foreach ($data as $cat) {
-        if (!$cat['active']) {    
-            continue; // Überspringe inaktive Kategorien
-        }  
-
         $subnavi = ''; // Initialisierung der Subnavigation
         if ($cat['hasChildren']) {
             // Rekursiver Aufruf für Unterkategorien
             $sub = bc_uikit($cat['children']);
             $subnavi = join("\n", $sub);
         }
-
         $url = ' href="'.$cat['url'].'"';
         $liclass = '';
         if ('REX_ARTICLE_ID' == $cat['catId']) {
@@ -310,7 +305,11 @@ function bc_uikit($data = array())
 }
 
 // Breadcrumb erzeugen
-$navigationArray = new FriendsOfRedaxo\navigationArray(0, 4, 20)->generate();
+$navigationArray = new FriendsOfRedaxo\navigationArray(0, 4, 20);
+$navigationArray->setCategoryFilterCallback(function ($cat) {
+        // Nur aktive Kategorien auswählen
+        return $cat['active'];
+ })->generate();
 echo '
     <nav aria-label="Breadcrumb">
     <ul class="uk-breadcrumb">'
