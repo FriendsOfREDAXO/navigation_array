@@ -43,6 +43,25 @@ array:7 [▼
 ]
 ```
 
+### Aufruf 
+
+```php
+$navArray = new FriendsOfRedaxo\navigationArray(0, 3);
+```
+oder per
+
+## Factory
+
+```php
+$navArray = FriendsOfRedaxo\navigationArray::create()->setStart(1)->setDepth(3);
+```
+
+## Methoden
+
+- `setStart($start)`: Setzt die Startkategorie/n. Eingabe als INT oder Array meehrerer Kategorien z.B: `[2, 3, 6]`
+- `setDepth($depth)`: Setzt die maximale Tiefe. (Bei 0 wird nichts ausgegeben) 
+- `setIgnore($ignore)`: Bestimmt, ob Offline-Kategorien ignoriert werden sollen, Standard: `true`.
+- `generate()`: Generiert die Navigationsstruktur als Array.
 
 ## Konstruktor
 
@@ -56,12 +75,7 @@ public function __construct($start = 0, $depth = 2, $ignoreOfflines = true)
 - **$depthSaved**: Interner Gebrauch für die Tiefenverwaltung. Standardmäßig `0`.
 - **$level**: Interner Gebrauch für die Levelverwaltung. Standardmäßig `0`.
 
-## Methoden
 
-- `setStart($start)`: Setzt die Startkategorie/n. Eingabe als INT oder Array meehrerer Kategorien z.B: `[2, 3, 6]`
-- `setDepth($depth)`: Setzt die maximale Tiefe. (Bei 0 wird nichts ausgegeben) 
-- `setIgnore($ignore)`: Bestimmt, ob Offline-Kategorien ignoriert werden sollen, Standard: `true`.
-- `generate()`: Generiert die Navigationsstruktur als Array.
 
 
 ## Beispiel: Ausgabe des Arrays
