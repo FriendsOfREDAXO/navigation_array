@@ -11,7 +11,7 @@ class navigationArray
     private $level;
     private $startCats; // Temporäre Variable für die Verarbeitung
     private $categoryFilterCallback;
-
+    private $customDataCallback;
 
     public function __construct($start = 0, $depth = 2, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
     {
@@ -80,6 +80,12 @@ class navigationArray
         return $this;
     }
 
+    public function setCustomDataCallback(callable $callback): self
+    {
+        $this->customDataCallback = $callback;
+        return $this;
+    }
+
     private function initializeStartCategory()
     {
         if (is_array($this->start)) {
@@ -123,7 +129,7 @@ class navigationArray
             ? ['child' => $this->generateSubcategories($cat)]
             : ['child' => []];
 
-        return [
+        $categoryArray = [
             'catId' => $catId,
             'parentId' => $this->start,
             'level' => $this->level,
@@ -133,9 +139,16 @@ class navigationArray
             'children' => $children['child'],
             'path' => $path,
             'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
-            'current' => $currentCat_id == $catId,
-            'catObject' => $cat
+            'current' => $currentCat_id == $catId
         ];
+        // Prüfen, ob der Custom-Data-Callback definiert ist und benutzerdefinierte Daten hinzufügen
+        if (is_callable($this->customDataCallback)) {
+            $customData = call_user_func($this->customDataCallback, $cat);
+            if (is_array($customData)) {
+                $categoryArray = array_merge($categoryArray, $customData);
+            }
+        }
+        return $categoryArray;
     }
 
     private function generateSubcategories($parentCat): array
