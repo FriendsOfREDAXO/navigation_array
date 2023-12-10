@@ -46,14 +46,27 @@ array:7 [▼
 ### Aufruf 
 
 ```php
-$navArray = new FriendsOfRedaxo\navigationArray(0, 3);
+$navArray = new FriendsOfRedaxo\navigationArray(6, 3);
 ```
+
+Automatische Erkennung des Mountpoints bei YRewrite (default)
+
+```php
+$navArray = new FriendsOfRedaxo\navigationArray(-1, 3);
+```
+
+Übergabe mehrerer Kategorien
+
+```php
+$navArray = new FriendsOfRedaxo\navigationArray([6,10,102], 3);
+```
+
 oder per
 
 ## Factory
 
 ```php
-$navArray = FriendsOfRedaxo\navigationArray::create()->setStart(1)->setDepth(3);
+$navArray = FriendsOfRedaxo\navigationArray::create()->setDepth(3);
 ```
 
 ## Methoden
@@ -66,16 +79,13 @@ $navArray = FriendsOfRedaxo\navigationArray::create()->setStart(1)->setDepth(3);
 ## Konstruktor
 
 ```php
-public function __construct($start = 0, $depth = 2, $ignoreOfflines = true)
+public function __construct($start = -1, $depth = 5, $ignoreOfflines = true)
 ```
 
-- **$start**: Startkategorie-ID oder Array von Kategorie-IDs. Standardmäßig `0` für Root-Kategorien.
-- **$depth**: Tiefenbegrenzung der Navigation. Standardmäßig `2`.
+- **$start**: Startkategorie-ID oder Array von Kategorie-IDs. Standardmäßig `-1` für automatische Erkennung.
+- **$depth**: Tiefenbegrenzung der Navigation. 
 - **$ignoreOfflines**: Bestimmt, ob offline Kategorien ignoriert werden sollen. Standardmäßig `true`.
 - **$depthSaved**: Interner Gebrauch für die Tiefenverwaltung. Standardmäßig `0`.
-- **$level**: Interner Gebrauch für die Levelverwaltung. Standardmäßig `0`.
-
-
 
 
 ## Beispiel: Ausgabe des Arrays
