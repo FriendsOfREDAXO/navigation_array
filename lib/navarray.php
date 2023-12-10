@@ -88,6 +88,10 @@ class navigationArray
 
     private function initializeStartCategory()
     {
+        if (is_int($this->start) && $this->start == 0 && \rex_addon::get('yrewrite')->isAvailable()) {
+            $this->start = \rex_yrewrite::getDomainByArticleId(\rex_article::getCurrentId(), \rex_clang::getCurrentId())->getMountId();
+        }
+        
         if (is_array($this->start)) {
             $this->startCats = [];
             foreach ($this->start as $startCatId) {
