@@ -31,14 +31,12 @@ array:7 [▼
                 "path" => array:1 [▶]
                 "active" => false
                 "current" => false
-                "catObject" => rex_category {#271 ▶}
             ]
             1 => array:11 [▶]
         ]
         "path" => []
         "active" => true
         "current" => true
-        "catObject" => rex_category {#123 ▶}
     ]
     5 => array:11 [▶]
     6 => array:11 [▶]
