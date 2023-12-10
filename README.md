@@ -271,41 +271,40 @@ $navigation = '
 
 ```php
 <?php 
-// UIkit Breadcrumb uses navigation_array
 function bc_uikit($data = array())
 {
+    $output = []; // Initialisierung der Output-Variable
     foreach ($data as $cat) {
-        if ($cat['active'] == false)    
-        {
-            continue;
+        if (!$cat['active']) {    
+            continue; // Überspringe inaktive Kategorien
         }  
-        if ($cat['hasChildren'] == true) {
-            $sub = [];
-            $sub[] = bc_uikit($cat['children']);
+
+        $subnavi = ''; // Initialisierung der Subnavigation
+        if ($cat['hasChildren']) {
+            // Rekursiver Aufruf für Unterkategorien
+            $sub = bc_uikit($cat['children']);
             $subnavi = join("\n", $sub);
-        } 
-	$url = ' href="'.$cat['url'].'"';
-        $catname = $cat['catName'];
+        }
+
+        $url = ' href="'.$cat['url'].'"';
+        $liclass = '';
         if ('REX_ARTICLE_ID' == $cat['catId']) {
             $liclass = ' class="uk-disabled" aria-current="page"';
-            $url ='';
+            $url = '';
         }
-        $catname = '<a'.$url.'>'.$catname.'</a>';     
-        if ($cat['active'] == true)       
-        {
-	         $output[] = '<li'.$liclass.'>' . $catname .'</li>'.$subnavi;
-
-        }
+        $catname = '<a'.$url.'>'.$cat['catName'].'</a>';
+        
+        $output[] = '<li'.$liclass.'>' . $catname .'</li>'.$subnavi;
     }
     return join("\n", $output);
 }
 
-// Breadcrumb erzeugen ($depth muss angegeben werden)
+// Breadcrumb erzeugen
 $navigationArray = new FriendsOfRedaxo\navigationArray(0, 4, 20)->generate();
-echo  '
+echo '
     <nav aria-label="Breadcrumb">
     <ul class="uk-breadcrumb">'
-    .bc_uikit(navArray($navigationArray).
+    . bc_uikit($navigationArray) .
     '</ul>
     </nav>
 ';
