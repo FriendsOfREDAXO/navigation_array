@@ -331,3 +331,32 @@ $navigation->setCategoryFilterCallback(function($cat) {
 ### Tipp:
 - Der Filter-Callback sollte so effizient wie möglich gestaltet werden, um die Leistung nicht negativ zu beeinflussen, besonders bei großen Kategoriestrukturen.
 - Diese Methode erhöht die Flexibilität Ihrer Navigation, indem sie benutzerdefinierte Filterlogik ermöglicht.
+
+## `setCustomDataCallback`
+
+### Beschreibung
+Die Methode `setCustomDataCallback` ermöglicht das Hinzufügen benutzerdefinierter Daten zu jedem Kategorie-Array in der Navigationsstruktur. Durch die Bereitstellung eines Callbacks können zusätzliche Informationen oder Attribute für jede Kategorie definiert werden.
+
+### Verwendung
+```php
+setCustomDataCallback(callable $callback): self
+```
+
+### Parameter
+- `$callback`: Ein `callable`, das als Callback für benutzerdefinierte Daten dient. Dieser Callback nimmt ein Kategorie-Objekt als Parameter und gibt ein Array zurück, das die zusätzlichen Daten enthält, die in das Kategorie-Array aufgenommen werden sollen.
+
+### Rückgabewert
+Die Methode gibt das `navigationArray`-Objekt zurück, was das Methoden-Chainen ermöglicht.
+
+### Beispiel
+```php
+$navigation = new navigationArray();
+$navigation->setCustomDataCallback(function($cat) {
+    return ['extraInfo' => 'Zusätzliche Informationen für ' . $cat->getValue('cat_color')];
+});
+```
+In diesem Beispiel wird die `setCustomDataCallback` Methode verwendet, um benutzerdefinierte Daten hinzuzufügen, die für jede Kategorie zusätzliche Informationen enthalten.
+
+### Hinweis
+- Der Callback sollte effizient gestaltet werden, um die Leistung nicht zu beeinträchtigen.
+- Diese Methode bietet Flexibilität bei der Erstellung von Navigationsstrukturen, indem sie es ermöglicht, kontextspezifische Daten zu jeder Kategorie hinzuzufügen.
