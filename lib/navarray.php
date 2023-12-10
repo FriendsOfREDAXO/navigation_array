@@ -92,6 +92,10 @@ class navigationArray
             $this->start = \rex_yrewrite::getDomainByArticleId(\rex_article::getCurrentId(), \rex_clang::getCurrentId())->getMountId();
         }
         
+        elseif ($this->start == -1 ) {
+            $this->start = 0;
+        }
+        
         if (is_array($this->start)) {
             $this->startCats = [];
             foreach ($this->start as $startCatId) {
@@ -101,7 +105,7 @@ class navigationArray
                     $this->startCats[] = $startCat;
                 }
             }
-        } elseif ($this->start != 0) {
+        } elseif ($this->start != 0 ) {
             $startCat = \rex_category::get($this->start);
             if ($startCat) {
                 $this->depth = count($startCat->getPathAsArray()) + $this->depth;
