@@ -108,10 +108,6 @@ class navigationArray
         } elseif ($this->start != 0 ) {
             $startCat = \rex_category::get($this->start);
             if ($startCat) {
-                if ($this->depth  == -1) 
-                {    
-                $this->depth = count($startCat->getPathAsArray()) + $this->depth;
-                }
                 $this->startCats = $startCat->getChildren($this->ignoreOfflines);
                 $this->depthSaved = $this->depthSaved ?: $this->depth;
             } else {
