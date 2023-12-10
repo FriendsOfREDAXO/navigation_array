@@ -131,6 +131,8 @@ class navigationArray
             return [];
          }
 
+        $catId = $cat->getId();
+        
         $children = $listlevel <= $this->depth && $cat->getChildren($this->ignoreOfflines)
             ? ['child' => $this->generateSubcategories($cat)]
             : ['child' => []];
