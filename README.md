@@ -363,7 +363,7 @@ Die Methode gibt das `navigationArray`-Objekt zurück, was das Methoden-Chainen 
 ```php
 $navigation = new navigationArray();
 $navigation->setCustomDataCallback(function($cat) {
-    return ['extraInfo' => 'Zusätzliche Informationen für ' . $cat->getValue('cat_color')];
+    return ['extraColor' => $cat->getValue('cat_color')];
 });
 ```
 In diesem Beispiel wird die `setCustomDataCallback` Methode verwendet, um benutzerdefinierte Daten hinzuzufügen, die für jede Kategorie zusätzliche Informationen enthalten.
