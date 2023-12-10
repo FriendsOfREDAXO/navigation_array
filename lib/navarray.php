@@ -127,10 +127,9 @@ class navigationArray
 
     private function processCategory($cat, $currentCatpath, $currentCat_id): array
     {
-        $catId = $cat->getId();
-        $path = $cat->getPathAsArray();
-        $listlevel = count($path);
-        if ($listlevel > $this->depth) return [];
+         if ($this->level > $this->depth) {
+            return [];
+         }
 
         $children = $listlevel <= $this->depth && $cat->getChildren($this->ignoreOfflines)
             ? ['child' => $this->generateSubcategories($cat)]
