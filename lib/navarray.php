@@ -13,7 +13,7 @@ class navigationArray
     private $categoryFilterCallback;
     private $customDataCallback;
 
-    public function __construct($start = 0, $depth = 2, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
+    public function __construct($start = -1, $depth = 4, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
     {
         $this->start = $start;
         $this->depth = $depth;
@@ -88,7 +88,7 @@ class navigationArray
 
     private function initializeStartCategory()
     {
-        if (is_int($this->start) && $this->start == 0 && \rex_addon::get('yrewrite')->isAvailable()) {
+        if (is_int($this->start) && $this->start == -1 && \rex_addon::get('yrewrite')->isAvailable()) {
             $this->start = \rex_yrewrite::getDomainByArticleId(\rex_article::getCurrentId(), \rex_clang::getCurrentId())->getMountId();
         }
         
