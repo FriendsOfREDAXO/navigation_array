@@ -7,4 +7,4 @@ info: 'FOR Navigation Array'
 requires:
     redaxo: '^5.15.0'
     php:
-        version: '>8.1'    
+        version: '>=8.1'    
