@@ -72,7 +72,7 @@ $navArray = FriendsOfRedaxo\navigationArray::create()->setDepth(3);
 ## Methoden
 
 - `setStart($start)`: Setzt die Startkategorie/n. Eingabe als INT oder Array meehrerer Kategorien z.B: `[2, 3, 6]`
-- `setDepth($depth)`: Setzt die maximale Tiefe. (Bei 0 wird nichts ausgegeben) 
+- `setDepth($depth)`: Setzt die maximale Tiefe. (Bei 0 wird nichts ausgegeben), bezieht sich auf den `root` der Struktur nicht ab den ausgewählten Startkategorien. 
 - `setIgnore($ignore)`: Bestimmt, ob Offline-Kategorien ignoriert werden sollen, Standard: `true`.
 - `generate()`: Generiert die Navigationsstruktur als Array.
 
@@ -83,7 +83,7 @@ public function __construct($start = -1, $depth = 5, $ignoreOfflines = true)
 ```
 
 - **$start**: Startkategorie-ID oder Array von Kategorie-IDs. Standardmäßig `-1` für automatische Erkennung.
-- **$depth**: Tiefenbegrenzung der Navigation. 
+- **$depth**: Tiefenbegrenzung der Navigation, bezieht sich auf den `root` der Struktur nicht ab den ausgewählten Startkategorien.  
 - **$ignoreOfflines**: Bestimmt, ob offline Kategorien ignoriert werden sollen. Standardmäßig `true`.
 - **$depthSaved**: Interner Gebrauch für die Tiefenverwaltung. Standardmäßig `0`.
 
