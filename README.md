@@ -322,8 +322,6 @@ echo '
 
 ## CallbackFilter: `setCategoryFilterCallback`
 
-Hier ist eine hilfreiche Dokumentation für die Methode `setCategoryFilterCallback` in Ihrer `navigationArray` Klasse:
-
 ### Beschreibung
 Die `setCategoryFilterCallback` Methode ermöglicht es, einen benutzerdefinierten Filter für die Kategorien zu definieren, die in der Navigation angezeigt werden sollen. Dieser Filter ist ein Callback, der für jede Kategorie aufgerufen wird. Wenn der Callback `true` zurückgibt, wird die Kategorie in die generierte Navigationsstruktur aufgenommen. Andernfalls wird sie übersprungen.
 
@@ -349,8 +347,8 @@ $navigation->setCategoryFilterCallback(function($cat) {
 ```
 
 ### Tipp:
-- Der Filter-Callback sollte so effizient wie möglich gestaltet werden, um die Leistung nicht negativ zu beeinflussen, besonders bei großen Kategoriestrukturen.
-- Diese Methode erhöht die Flexibilität Ihrer Navigation, indem sie benutzerdefinierte Filterlogik ermöglicht.
+Der Filter-Callback sollte so effizient wie möglich gestaltet werden, um die Leistung nicht negativ zu beeinflussen, besonders bei großen Kategoriestrukturen.
+
 
 ## `setCustomDataCallback`
 
@@ -378,5 +376,5 @@ $navigation->setCustomDataCallback(function($cat) {
 In diesem Beispiel wird die `setCustomDataCallback` Methode verwendet, um benutzerdefinierte Daten hinzuzufügen, die für jede Kategorie zusätzliche Informationen enthalten.
 
 ### Hinweis
-- Der Callback sollte effizient gestaltet werden, um die Leistung nicht zu beeinträchtigen.
-- Diese Methode bietet Flexibilität bei der Erstellung von Navigationsstrukturen, indem sie es ermöglicht, kontextspezifische Daten zu jeder Kategorie hinzuzufügen.
+Der Callback sollte effizient gestaltet werden, um die Leistung nicht zu beeinträchtigen.
+
