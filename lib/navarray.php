@@ -133,7 +133,7 @@ class navigationArray
 
         $catId = $cat->getId();
         
-        $children = $listlevel <= $this->depth && $cat->getChildren($this->ignoreOfflines)
+        $children = $this->level <= $this->depth && $cat->getChildren($this->ignoreOfflines)
             ? ['child' => $this->generateSubcategories($cat)]
             : ['child' => []];
 
@@ -145,7 +145,7 @@ class navigationArray
             'url' => $cat->getUrl(),
             'hasChildren' => !empty($children['child']),
             'children' => $children['child'],
-            'path' => $path,
+            'path' => $cat->getPathAsArray();,
             'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
             'current' => $currentCat_id == $catId
         ];
