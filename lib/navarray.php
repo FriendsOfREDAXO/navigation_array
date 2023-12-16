@@ -86,7 +86,7 @@ class navigationArray
         return $this;
     }
 
-    private function initializeStartCategory()
+    private function initializeStartCategory(): void
     {
         if (is_int($this->start) && $this->start == -1 && \rex_addon::get('yrewrite')->isAvailable()) {
             $this->start = \rex_yrewrite::getDomainByArticleId(\rex_article::getCurrentId(), \rex_clang::getCurrentId())->getMountId();
