@@ -145,7 +145,7 @@ class navigationArray
             'url' => $cat->getUrl(),
             'hasChildren' => !empty($children['child']),
             'children' => $children['child'],
-            'path' => $cat->getPathAsArray();,
+            'path' => $cat->getPathAsArray(),
             'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
             'current' => $currentCat_id == $catId
         ];
