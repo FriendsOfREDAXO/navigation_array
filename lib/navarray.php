@@ -139,7 +139,7 @@ class navigationArray
 
         $categoryArray = [
             'catId' => $catId,
-            'parentId' => $this->start,
+            'parentId' => $cat->getParentId(),
             'level' => $this->level,
             'catName' => $cat->getName(),
             'url' => $cat->getUrl(),
