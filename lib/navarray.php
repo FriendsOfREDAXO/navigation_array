@@ -1,8 +1,8 @@
 <?php
 
-namespace FriendsOfRedaxo;
+namespace FriendsOfRedaxo\navigationArray;
 
-class navigationArray
+class buildArray
 {
     private $start;
     private $depth;
