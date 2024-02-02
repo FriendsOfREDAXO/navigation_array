@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfRedaxo\navigationArray;
+namespace FriendsOfRedaxo\NavigationArray;
 
 class buildArray
 {
