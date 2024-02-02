@@ -1,9 +1,14 @@
 <?php
-
 namespace FriendsOfRedaxo\NavigationArray;
 
-class buildArray
-{
+use rex_category;
+use rex_addon;
+use rex_yrewrite;
+use rex_article;
+use rex_clang;
+
+class BuildArray
+{    
     private $start;
     private $depth;
     private $ignoreOfflines;
@@ -134,7 +139,7 @@ class buildArray
         $catId = $cat->getId();
         
         $children = $this->level <= $this->depth && $cat->getChildren($this->ignoreOfflines)
-            ? ['child' => $this->generateSubcategories($cat)]
+            ? ['child' => $this->generateSubCategories($cat)]
             : ['child' => []];
 
         $categoryArray = [
@@ -159,7 +164,7 @@ class buildArray
         return $categoryArray;
     }
 
-    private function generateSubcategories($parentCat): array
+    private function generateSubCategories($parentCat): array
     {
         $originalStart = $this->start;
         $this->start = $parentCat->getId();
