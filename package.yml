@@ -1,8 +1,8 @@
 package: navigation_array
-version: '2.0.2'
+version: '3.0.0'
 author: 'Friends Of REDAXO'
 supportpage: https://github.com/FriendsOfREDAXO/navigation_array
-info: 'FOR Navigation Array'
+info: 'REDAXO AddOn:Navigation Array'
 
 requires:
     redaxo: '^5.15.0'
