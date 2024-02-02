@@ -1,22 +1,22 @@
 <?php
 namespace FriendsOfRedaxo\NavigationArray;
 
-use rex_category;
 use rex_addon;
-use rex_yrewrite;
 use rex_article;
+use rex_category;
 use rex_clang;
+use rex_yrewrite;
 
 class BuildArray
 {    
-    private $start;
-    private $depth;
-    private $ignoreOfflines;
-    private $depthSaved;
-    private $level;
-    private $startCats; // Temporäre Variable für die Verarbeitung
     private $categoryFilterCallback;
     private $customDataCallback;
+    private $depth;
+    private $depthSaved;
+    private $ignoreOfflines;
+    private $level;
+    private $start;
+    private $startCats; // Temporäre Variable für die Verarbeitung
 
     public function __construct($start = -1, $depth = 4, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
     {
