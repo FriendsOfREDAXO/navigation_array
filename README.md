@@ -43,22 +43,30 @@ array:7 [▼
 ]
 ```
 
+
 ### Aufruf 
 
 ```php
-$navArray = new FriendsOfRedaxo\NavigationArray\buildArray(6, 3);
+// Festlegen des Namespace
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+```
+
+
+```php
+$navArray = new BuildArray(6, 3);
 ```
 
 Automatische Erkennung des Mountpoints bei YRewrite (default)
 
 ```php
-$navArray = new FriendsOfRedaxo\NavigationArray\buildArray(-1, 3);
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+$navArray = new BuildArray(-1, 3);
 ```
 
 Übergabe mehrerer Kategorien
 
 ```php
-$navArray = new FriendsOfRedaxo\NavigationArray\buildArray([6,10,102], 3);
+$navArray = new BuildArray([6,10,102], 3);
 ```
 
 oder per
@@ -66,7 +74,7 @@ oder per
 ## Factory
 
 ```php
-$navArray =  new FriendsOfRedaxo\NavigationArray\buildArray::create()->setDepth(3);
+$navArray = $navArray = BuildArray::create()->setDepth(3);
 ```
 
 ## Methoden
@@ -93,7 +101,7 @@ public function __construct($start = -1, $depth = 5, $ignoreOfflines = true)
 ```php
 
 // Initialisierung des NavigationArray mit Startkategorie-ID 0 und Tiefe 3
-$navArray =  new FriendsOfRedaxo\NavigationArray\buildArray(0, 3);
+$navArray =  new BuildArray(0, 3);
 
 // Generierung der Navigationsstruktur
 $result = $navArray->generate();
@@ -130,7 +138,7 @@ function generateNavigationList($items) {
     return $output;
 }
 
-$NavigationArray =  new FriendsOfRedaxo\NavigationArray\buildArray(0, 3)->generate();
+$NavigationArray =  new BuildArray(0, 3)->generate();
 
 // Generate the navigation list
 $navigationList = generateNavigationList($NavigationArray);
@@ -190,7 +198,8 @@ function bsnavi5($data = array())
     }
     return join("\n", $output);
 }
-$NavigationArray =  new FriendsOfRedaxo\NavigationArray\buildArray(0, 4)->generate();
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+$NavigationArray =  new BuildArray(0, 4)->generate();
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -247,7 +256,8 @@ function myNavi_demo($data = array())
     }
 }
 // Navigation erzeugen
-$NavigationArray = new FriendsOfRedaxo\NavigationArray\buildArray(0, 4)->generate();
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+$NavigationArray = new BuildArray(0, 4)->generate();
 $navigation = '
     <ul class="uk-navbar-nav">'
     . myNavi_demo(navArray($NavigationArray) .
@@ -305,7 +315,8 @@ function bc_uikit($data = array())
 }
 
 // Breadcrumb erzeugen
-$NavigationArray = new FriendsOfRedaxo\NavigationArray\buildArray(0, 4, 20);
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+$NavigationArray = new BuildArray(0, 4, 20);
 $NavigationArray->setCategoryFilterCallback(function ($cat) {
         // Nur aktive Kategorien auswählen
         return $cat['active'];
@@ -340,7 +351,7 @@ Die Methode gibt das `NavigationArray`-Objekt zurück, was das Methoden-Chainen 
 Das folgende Beispiel zeigt, wie man einen Filter definieren kann, der alle Kategorien mit der Bezeichnung `ìrgendwas` herausfiltert:
 
 ```php
-$navigation =  new FriendsOfRedaxo\NavigationArray\buildArray();
+$navigation =  new BuildArray();
 $navigation->setCategoryFilterCallback(function($cat) {
     return $cat->getName() !== 'irgendwas';
 });
@@ -368,7 +379,7 @@ Die Methode gibt das `NavigationArray`-Objekt zurück, was das Methoden-Chainen 
 
 ### Beispiel
 ```php
-$navigation = new FriendsOfRedaxo\NavigationArray\buildArray();
+$navigation = new BuildArray();
 $navigation->setCustomDataCallback(function($cat) {
     return ['extraColor' => $cat->getValue('cat_color')];
 });
