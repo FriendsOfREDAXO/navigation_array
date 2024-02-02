@@ -100,6 +100,8 @@ public function __construct($start = -1, $depth = 5, $ignoreOfflines = true)
 
 ```php
 
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
 // Initialisierung des NavigationArray mit Startkategorie-ID 0 und Tiefe 3
 $navArray =  new BuildArray(0, 3);
 
@@ -138,6 +140,7 @@ function generateNavigationList($items) {
     return $output;
 }
 
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 $NavigationArray =  new BuildArray(0, 3)->generate();
 
 // Generate the navigation list
