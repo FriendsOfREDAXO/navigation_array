@@ -74,7 +74,7 @@ oder per
 ## Factory
 
 ```php
-$navArray = $navArray = BuildArray::create()->setDepth(3);
+$navArray = BuildArray::create()->setDepth(3);
 ```
 
 ## Methoden
