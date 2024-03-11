@@ -151,6 +151,63 @@ echo $navigationList;
 ```
 
 
+## Beispiel erweiterte Navigation mit Callback 
+
+```php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+$mainnavi_array = (new BuildArray())
+    ->setCustomDataCallback(function($cat) {
+        return ['navtype' => $cat->getValue('cat_navigationstyp')];
+    })
+    ->generate();
+
+$mainnavigation_items = [];
+
+function createNavigationItems($navi) {
+    $items = [];
+    $class_active = $navi['active'] ? 'active' : '';
+    $class_current = $navi['current'] ? ' current' : '';
+    $class_has_child = $navi['children'] ? ' has-child' : '';
+
+    $items[] = "<li class=\"{$class_active}{$class_current}{$class_has_child}\"><a href=\"{$navi['url']}\">{$navi['catName']}</a>";
+
+    if($navi['children']) {
+        $items[] = '<button class="child-toggle">X</button>'; 
+        $items[] = '<ul>';
+
+        foreach ($navi['children'] as $nav_child) {
+            $items[] = createNavigationItems($nav_child);
+        }
+
+        $items[] = '</ul>';
+    }
+
+    $items[] = '</li>';
+
+    return implode($items);
+}
+
+foreach ($mainnavi_array as $navi) {
+    $navtype_arr = explode('|', $navi['navtype']);
+
+    if (in_array('main', $navtype_arr)) {
+        $mainnavigation_items[] = createNavigationItems($navi);
+    }
+}
+
+$mainnavigation = '<ul id="mainnavigation">' . implode($mainnavigation_items) . '</ul>';
+```
+
+Zu Beginn wird die Klasse `BuildArray` aus dem `FriendsOfRedaxo\NavigationArray`-Namespace verwendet, um ein Array für die Hauptnavigation zu generieren. Dabei wird eine benutzerdefinierte `Callback-Funktion` verwendet, um zusätzliche Daten für jeden Eintrag in der Navigation festzulegen. In diesem Fall wird das Feld `navtype` mit dem Wert des Feldes `cat_navigationstyp` aus der Kategorie des Eintrags befüllt.
+Anschließend wird eine leere Array-Variable `$mainnavigation_items` definiert. Diese wird später mit den generierten Navigationselementen befüllt.
+Die Funktion `createNavigationItems` wird definiert, um rekursiv die HTML-Struktur für jedes Navigationselement zu erstellen. Dabei werden verschiedene CSS-Klassen basierend auf den Eigenschaften des Navigationselements gesetzt, wie z.B. `active`, `current` und `has-child`. Die Funktion gibt den HTML-Code für das Navigationselement als String zurück.
+In der Schleife `foreach ($mainnavi_array as $navi)` wird über jedes Element in der generierten Hauptnavigation iteriert. Das Feld ``navtype` wird in ein Array `$navtype_arr` aufgeteilt, indem der Wert anhand des Trennzeichens | gesplittet wird. Wenn der Wert `main` in `$navtype_arr` enthalten ist, wird die Funktion `createNavigationItems` aufgerufen und das generierte Navigationselement wird dem Array `$mainnavigation_items` hinzugefügt.
+Schließlich wird die Hauptnavigation als HTML-Code in der Variable `$mainnavigation` gespeichert, indem die einzelnen Navigationselemente mit `implode` zu einem String zusammengefügt werden.
+Das Feld `cat_navigationstyp` hat derzeit die Werte “meta,main,footer”. Es wird verwendet, um zu bestimmen, welche Navigationselemente in der Hauptnavigation angezeigt werden sollen. In diesem Fall werden nur die Elemente angezeigt, deren navtype den Wert 'main' enthält.
+
+
+
 ## Beispiel: Bootstrap 5 Navigation 
 
 ```php
