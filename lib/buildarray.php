@@ -157,7 +157,7 @@ class BuildArray
             'level' => $this->level,
             'catName' => $cat->getName(),
             'url' => $cat->getUrl(),
-            'hasChildren' => isset($children['child']) && ($children['child'] !== '' && $children['child'] !== '0'),
+            'hasChildren' => 'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
             'children' => $children['child'],
             'path' => $cat->getPathAsArray(),
             'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
