@@ -74,7 +74,7 @@ oder per
 ## Factory
 
 ```php
-$navArray = BuildArray::create()->setDepth(3);
+$navArray = BuildArray::create()->setDepth(3)->generate();
 ```
 
 ## Methoden
@@ -141,11 +141,10 @@ function generateNavigationList($items) {
 }
 
 use FriendsOfRedaxo\NavigationArray\BuildArray;
-$NavigationArray =  BuildArray::create()->setDepth(3);
-$result = $navigationBuilder->generate();
+$NavigationArray =  BuildArray::create()->setDepth(3)->generate();
 
 // Generate the navigation list
-$navigationList = generateNavigationList($result);
+$navigationList = generateNavigationList($NavigationArray);
 
 // Output the navigation list
 echo $navigationList;
@@ -260,14 +259,13 @@ function bsnavi5($data = array())
     return join("\n", $output);
 }
 use FriendsOfRedaxo\NavigationArray\BuildArray;
-$NavigationArray =  BuildArray::create()->setDepth(4);
-$result = $navigationBuilder->generate();
+$NavigationArray =  BuildArray::create()->setDepth(4)->generate();
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <ul class="navbar-nav ms-md-auto mb-0">
-            <?php echo bsnavi5(navArray($result)) ?>
+            <?php echo bsnavi5(navArray($NavigationArray)) ?>
         </ul>
     </div>
 </nav>
@@ -319,11 +317,10 @@ function myNavi_demo($data = array())
 }
 // Navigation erzeugen
 use FriendsOfRedaxo\NavigationArray\BuildArray;
-$NavigationArray = BuildArray::create()->setDepth(3);
-$result = $navigationBuilder->generate();
+$NavigationArray = BuildArray::create()->setDepth(3)->generate();
 $navigation = '
     <ul class="uk-navbar-nav">'
-    . myNavi_demo(navArray($result) .
+    . myNavi_demo(navArray($NavigationArray) .
     '</ul>
 ';
 ?>
@@ -380,14 +377,14 @@ function bc_uikit($data = array())
 // Breadcrumb erzeugen
 use FriendsOfRedaxo\NavigationArray\BuildArray;
 $NavigationArray = new BuildArray(0, 4, 20);
-$NavigationArray->setCategoryFilterCallback(function ($cat) {
+$result = $NavigationArray->setCategoryFilterCallback(function ($cat) {
         // Nur aktive Kategorien auswählen
         return $cat['active'];
  })->generate();
 echo '
     <nav aria-label="Breadcrumb">
     <ul class="uk-breadcrumb">'
-    . bc_uikit($NavigationArray) .
+    . bc_uikit($result) .
     '</ul>
     </nav>
 ';
