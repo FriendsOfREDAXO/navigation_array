@@ -1,4 +1,5 @@
 <?php
+
 use FriendsOfRedaxo\navigationArray\BuildArray;
 
 // Function zur Generierung eines Navigationsarrays
@@ -6,13 +7,12 @@ use FriendsOfRedaxo\navigationArray\BuildArray;
  * @deprecated will be removed in 4.0.0
  */
 if (!function_exists('navArray')) {
-    function navArray($start = -1, $depth = 0, $ignoreOfflines = true)
+    function navArray($start = -1, $depth = 0, $ignoreOfflines = true): array
     {
         $navArray = new BuildArray($start, $depth, $ignoreOfflines);
-        $navArray->setCustomDataCallback(function ($cat) {
+        $navArray->setCustomDataCallback(static function ($cat) {
             return ['catObject' => $cat];
         });
-        $result = $navArray->generate();
-        return $result;
+        return $navArray->generate();
     }
 }

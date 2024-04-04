@@ -141,10 +141,11 @@ function generateNavigationList($items) {
 }
 
 use FriendsOfRedaxo\NavigationArray\BuildArray;
-$NavigationArray =  new BuildArray(0, 3)->generate();
+$NavigationArray =  BuildArray::create()->setDepth(3);
+$result = $navigationBuilder->generate();
 
 // Generate the navigation list
-$navigationList = generateNavigationList($NavigationArray);
+$navigationList = generateNavigationList($result);
 
 // Output the navigation list
 echo $navigationList;
@@ -259,13 +260,14 @@ function bsnavi5($data = array())
     return join("\n", $output);
 }
 use FriendsOfRedaxo\NavigationArray\BuildArray;
-$NavigationArray =  new BuildArray(0, 4)->generate();
+$NavigationArray =  BuildArray::create()->setDepth(4);
+$result = $navigationBuilder->generate();
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <ul class="navbar-nav ms-md-auto mb-0">
-            <?php echo bsnavi5(navArray($NavigationArray) ?>
+            <?php echo bsnavi5(navArray($result)) ?>
         </ul>
     </div>
 </nav>
@@ -317,10 +319,11 @@ function myNavi_demo($data = array())
 }
 // Navigation erzeugen
 use FriendsOfRedaxo\NavigationArray\BuildArray;
-$NavigationArray = new BuildArray(0, 4)->generate();
+$NavigationArray = BuildArray::create()->setDepth(3);
+$result = $navigationBuilder->generate();
 $navigation = '
     <ul class="uk-navbar-nav">'
-    . myNavi_demo(navArray($NavigationArray) .
+    . myNavi_demo(navArray($result) .
     '</ul>
 ';
 ?>
@@ -448,4 +451,3 @@ In diesem Beispiel wird die `setCustomDataCallback` Methode verwendet, um benutz
 
 ### Hinweis
 Der Callback sollte effizient gestaltet werden, um die Leistung nicht zu beeinträchtigen.
-
