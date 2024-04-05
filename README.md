@@ -265,7 +265,7 @@ $NavigationArray =  BuildArray::create()->setDepth(4)->generate();
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <ul class="navbar-nav ms-md-auto mb-0">
-            <?php echo bsnavi5(navArray($NavigationArray)) ?>
+            <?= bsnavi5($NavigationArray) ?>
         </ul>
     </div>
 </nav>
@@ -320,7 +320,7 @@ use FriendsOfRedaxo\NavigationArray\BuildArray;
 $NavigationArray = BuildArray::create()->setDepth(3)->generate();
 $navigation = '
     <ul class="uk-navbar-nav">'
-    . myNavi_demo(navArray($NavigationArray) .
+    . myNavi_demo($NavigationArray) .
     '</ul>
 ';
 ?>
