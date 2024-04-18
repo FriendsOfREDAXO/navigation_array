@@ -4,7 +4,7 @@ NavigationArray ist Teil des FriendsOfRedaxo-Projekts. Die PHP-Class erstellt ei
 
 In YCOM definierte Rechte werden berücksichtigt
 
-## Dump eines Navigation-Arrays: 
+## Navigation-Array: 
 
 ```
 array:7 [▼
@@ -43,6 +43,26 @@ array:7 [▼
 ]
 ```
 
+#### Struktur des Ergebnisarrays
+
+Das Ergebnisarray enthält für jede Kategorie folgende Schlüssel-Wert-Paare:
+
+- `catId`: Die ID der Kategorie.
+- `parentId`: Die ID der Elternkategorie.
+- `level`: Die aktuelle Tiefe der Kategorie im Navigationsbaum.
+- `catName`: Der Name der Kategorie.
+- `url`: Die URL der Kategorie.
+- `hasChildren`: Ein Boolean, der angibt, ob die Kategorie Unterkategorien hat.
+- `children`: Ein Array von Unterkategorien, falls vorhanden.
+- `path`: Ein Array, das den Pfad von der Wurzel bis zur aktuellen Kategorie darstellt.
+- `active`: Ein Boolean, der angibt, ob die Kategorie im aktuellen Pfad liegt.
+- `current`: Ein Boolean, der angibt, ob es sich um die aktuelle Kategorie handelt.
+
+Die Methode `generateSubCategories($parentCat)` wird verwendet, um rekursiv Unterkategorien zu generieren, falls die Kategorie Kinder hat und die festgelegte Tiefe noch nicht erreicht ist.
+
+### Nutzung
+
+Das `NavigationArray` Modul kann zum Beispiel in einem REDAXO-Addon verwendet werden, um dynamische Navigationsmenüs zu erstellen, die auf der Struktur und den Berechtigungen der Kategorieseiten basieren. Es unterstützt auch die Integration mit dem `yrewrite`-Addon für URL-Management und das `ycom`-Plugin für Zugriffskontrollen.
 
 ### Aufruf 
 
