@@ -58,11 +58,6 @@ Das Ergebnisarray enthält für jede Kategorie folgende Schlüssel-Wert-Paare:
 - `active`: Ein Boolean, der angibt, ob die Kategorie im aktuellen Pfad liegt.
 - `current`: Ein Boolean, der angibt, ob es sich um die aktuelle Kategorie handelt.
 
-Die Methode `generateSubCategories($parentCat)` wird verwendet, um rekursiv Unterkategorien zu generieren, falls die Kategorie Kinder hat und die festgelegte Tiefe noch nicht erreicht ist.
-
-### Nutzung
-
-Das `NavigationArray` Modul kann zum Beispiel in einem REDAXO-Addon verwendet werden, um dynamische Navigationsmenüs zu erstellen, die auf der Struktur und den Berechtigungen der Kategorieseiten basieren. Es unterstützt auch die Integration mit dem `yrewrite`-Addon für URL-Management und das `ycom`-Plugin für Zugriffskontrollen.
 
 ### Aufruf 
 
