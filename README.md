@@ -271,7 +271,7 @@ function bsnavi5($data = array())
         // Generiere den li-Tag
         $output[] = '<li ' . $li . '>' . $catname . $subnavi . '</li>';
     }
-    return join("\n", $output);
+    return implode("\n", $output);
 }
 use FriendsOfRedaxo\NavigationArray\BuildArray;
 $NavigationArray =  BuildArray::create()->setDepth(4)->generate();
@@ -327,7 +327,7 @@ function myNavi_demo($data = array())
     }
 
     if (!empty($output)) {
-        return join("\n", $output);
+        return implode("\n", $output);
     }
 }
 // Navigation erzeugen
@@ -386,7 +386,7 @@ function bc_uikit($data = array())
         
         $output[] = '<li'.$liclass.'>' . $catname .'</li>'.$subnavi;
     }
-    return join("\n", $output);
+    return implode("\n", $output);
 }
 
 // Breadcrumb erzeugen
