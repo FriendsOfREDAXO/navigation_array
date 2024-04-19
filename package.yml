@@ -1,5 +1,5 @@
 package: navigation_array
-version: '4.0.0-dev'
+version: '4.0.0'
 author: 'Friends Of REDAXO'
 supportpage: https://github.com/FriendsOfREDAXO/navigation_array
 info: 'REDAXO AddOn:Navigation Array'
