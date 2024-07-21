@@ -104,6 +104,12 @@ class BuildArray
         return $this;
     }
 
+    public function toJson(): string
+    {
+        $array = $this->generate();
+        return json_encode($array, JSON_PRETTY_PRINT);
+    }
+
     private function initializeStartCategory(): void
     {
         if (is_int($this->start) && $this->start == -1 && rex_addon::get('yrewrite')->isAvailable()) {
