@@ -1,12 +1,10 @@
 # REDAXO FOR NavigationArray
 
-NavigationArray ist Teil des FriendsOfRedaxo-Projekts. Die PHP-Class erstellt ein Array der Struktur zur einfacheren Generierung individueller Navigationen. 
-
-In YCOM definierte Rechte werden berücksichtigt
+NavigationArray ist Teil des FriendsOfRedaxo-Projekts. Diese PHP-Klasse erstellt ein Array der Struktur zur einfacheren Generierung individueller Navigationen. Die in YCOM definierten Rechte werden berücksichtigt.
 
 ## Navigation-Array: 
 
-```
+```php
 array:7 [▼
     0 => array:11 [▶]
     1 => array:11 [▶]
@@ -58,7 +56,6 @@ Das Ergebnisarray enthält für jede Kategorie folgende Schlüssel-Wert-Paare:
 - `active`: Ein Boolean, der angibt, ob die Kategorie im aktuellen Pfad liegt.
 - `current`: Ein Boolean, der angibt, ob es sich um die aktuelle Kategorie handelt.
 
-
 ### Aufruf 
 
 ```php
@@ -66,27 +63,26 @@ Das Ergebnisarray enthält für jede Kategorie folgende Schlüssel-Wert-Paare:
 use FriendsOfRedaxo\NavigationArray\BuildArray;
 ```
 
+#### Einfacher Aufruf
 
 ```php
 $navArray = new BuildArray(6, 3);
 ```
 
-Automatische Erkennung des Mountpoints bei YRewrite (default)
+#### Automatische Erkennung des Mountpoints bei YRewrite (default)
 
 ```php
 use FriendsOfRedaxo\NavigationArray\BuildArray;
 $navArray = new BuildArray(-1, 3);
 ```
 
-Übergabe mehrerer Kategorien
+#### Übergabe mehrerer Kategorien
 
 ```php
-$navArray = new BuildArray([6,10,102], 3);
+$navArray = new BuildArray([6, 10, 102], 3);
 ```
 
-oder per
-
-## Factory
+#### Oder per Factory
 
 ```php
 $navArray = BuildArray::create()->setDepth(3)->generate();
@@ -94,7 +90,7 @@ $navArray = BuildArray::create()->setDepth(3)->generate();
 
 ## Methoden
 
-- `setStart($start)`: Setzt die Startkategorie/n. Eingabe als INT oder Array meehrerer Kategorien z.B: `[2, 3, 6]`, Standardmäßig `-1` für automatische Erkennung.
+- `setStart($start)`: Setzt die Startkategorie/n. Eingabe als INT oder Array mehrerer Kategorien z.B: `[2, 3, 6]`, standardmäßig `-1` für automatische Erkennung.
 - `setDepth($depth)`: Setzt die maximale Tiefe, bezieht sich auf den `root` der der ausgewählten Kategorie/n. Beginnend bei 0.
 - `setIgnore($ignore)`: Bestimmt, ob Offline-Kategorien ignoriert werden sollen, Standard: `true`.
 - `generate()`: Generiert die Navigationsstruktur als Array.
@@ -110,24 +106,20 @@ public function __construct($start = -1, $depth = 5, $ignoreOfflines = true)
 - **$ignoreOfflines**: Bestimmt, ob offline Kategorien ignoriert werden sollen. Standardmäßig `true`.
 - **$depthSaved**: Interner Gebrauch für die Tiefenverwaltung. Standardmäßig `0`.
 
-
 ## Beispiel: Ausgabe des Arrays
 
 ```php
-
 use FriendsOfRedaxo\NavigationArray\BuildArray;
 
 // Initialisierung des NavigationArray mit Startkategorie-ID 0 und Tiefe 3
-$navArray =  new BuildArray(0, 3);
+$navArray = new BuildArray(0, 3);
 
 // Generierung der Navigationsstruktur
 $result = $navArray->generate();
 
 // Ausgabe des Arrays
-dump($result);
+var_dump($result);
 ```
-
-
 
 ## Beispiel einfache Navigation 
 
@@ -156,7 +148,7 @@ function generateNavigationList($items) {
 }
 
 use FriendsOfRedaxo\NavigationArray\BuildArray;
-$NavigationArray =  BuildArray::create()->setDepth(3)->generate();
+$NavigationArray = BuildArray::create()->setDepth(3)->generate();
 
 // Generate the navigation list
 $navigationList = generateNavigationList($NavigationArray);
@@ -164,7 +156,6 @@ $navigationList = generateNavigationList($NavigationArray);
 // Output the navigation list
 echo $navigationList;
 ```
-
 
 ## Beispiel erweiterte Navigation mit Callback 
 
@@ -187,7 +178,7 @@ function createNavigationItems($navi) {
 
     $items[] = "<li class=\"{$class_active}{$class_current}{$class_has_child}\"><a href=\"{$navi['url']}\">{$navi['catName']}</a>";
 
-    if($navi['children']) {
+    if ($navi['children']) {
         $items[] = '<button class="child-toggle">X</button>'; 
         $items[] = '<ul>';
 
@@ -214,14 +205,19 @@ foreach ($mainnavi_array as $navi) {
 $mainnavigation = '<ul id="mainnavigation">' . implode($mainnavigation_items) . '</ul>';
 ```
 
-Zu Beginn wird die Klasse `BuildArray` aus dem `FriendsOfRedaxo\NavigationArray`-Namespace verwendet, um ein Array für die Hauptnavigation zu generieren. Dabei wird eine benutzerdefinierte `Callback-Funktion` verwendet, um zusätzliche Daten für jeden Eintrag in der Navigation festzulegen. In diesem Fall wird das Feld `navtype` mit dem Wert des Feldes `cat_navigationstyp` aus der Kategorie des Eintrags befüllt.
+### Erklärung
+
+Zu Beginn wird die Klasse `BuildArray` aus dem `FriendsOfRedaxo\NavigationArray`-Namespace verwendet, um ein Array für die Hauptnavigation zu generieren. Dabei wird eine benutzerdefinierte Callback-Funktion verwendet, um zusätzliche Daten für jeden Eintrag in der Navigation festzulegen. In diesem Fall wird das Feld `navtype` mit dem Wert des Feldes `cat_navigationstyp` aus der Kategorie des Eintrags befüllt.
+
 Anschließend wird eine leere Array-Variable `$mainnavigation_items` definiert. Diese wird später mit den generierten Navigationselementen befüllt.
+
 Die Funktion `createNavigationItems` wird definiert, um rekursiv die HTML-Struktur für jedes Navigationselement zu erstellen. Dabei werden verschiedene CSS-Klassen basierend auf den Eigenschaften des Navigationselements gesetzt, wie z.B. `active`, `current` und `has-child`. Die Funktion gibt den HTML-Code für das Navigationselement als String zurück.
-In der Schleife `foreach ($mainnavi_array as $navi)` wird über jedes Element in der generierten Hauptnavigation iteriert. Das Feld ``navtype` wird in ein Array `$navtype_arr` aufgeteilt, indem der Wert anhand des Trennzeichens | gesplittet wird. Wenn der Wert `main` in `$navtype_arr` enthalten ist, wird die Funktion `createNavigationItems` aufgerufen und das generierte Navigationselement wird dem Array `$mainnavigation_items` hinzugefügt.
+
+In der Schleife `foreach ($mainnavi_array as $navi)` wird über jedes Element in der generierten Hauptnavigation iteriert. Das Feld `navtype` wird in ein Array `$navtype_arr` aufgeteilt, indem der Wert anhand des Trennzeichens `|` gesplittet wird. Wenn der Wert `main` in `$navtype_arr` enthalten ist, wird die Funktion `createNavigationItems` aufgerufen und das generierte Navigationselement wird dem Array `$mainnavigation_items` hinzugefügt.
+
 Schließlich wird die Hauptnavigation als HTML-Code in der Variable `$mainnavigation` gespeichert, indem die einzelnen Navigationselemente mit `implode` zu einem String zusammengefügt werden.
-Das Feld `cat_navigationstyp` hat derzeit die Werte “meta,main,footer”. Es wird verwendet, um zu bestimmen, welche Navigationselemente in der Hauptnavigation angezeigt werden sollen. In diesem Fall werden nur die Elemente angezeigt, deren navtype den Wert 'main' enthält.
 
-
+Das Feld `cat_navigationstyp` hat derzeit die Werte "meta, main, footer". Es wird verwendet, um zu bestimmen, welche Navigationselemente in der Hauptnavigation angezeigt werden sollen. In diesem Fall werden nur die Elemente angezeigt, deren `navtype` den Wert 'main' enthält.
 
 ## Beispiel: Bootstrap 5 Navigation 
 
@@ -231,50 +227,45 @@ function bsnavi5($data = array())
 {
     $output = array();
     foreach ($data as $cat) {
-        // Defaults
-        $subnavi = $catname = $li = $active = $ul =  $link_extra = "";
+        $subnavi = $catname = $li = $active =
+
+ $ul = $link_extra = "";
         $aclass = 'nav-link';
         $li = ' class="nav-item"';
 
-        // Was passiert in Level 0?
         if ($cat['level'] == 0 && $cat['hasChildren'] == true) {
             $li = ' class="nav-item dropdown"';
             $ul = ' class="dropdown-menu"';
             $link_extra = 'id="ddm' . $cat['catId'] . '" data-bs-toggle="dropdown"';
             $aclass = 'nav-link dropdown-toggle';
         }
-        // Was ab Level 1 und die Kategorie hat keine Kinder
+
         if ($cat['level'] == 1 && $cat['hasChildren'] == false) {
             $li = ' class="nav-item dropdown"';
             $aclass = 'dropdown-item';
         }
 
-        // Prüfe ob die Kategorie Kinder hat und rufe die Funktion rekursiv auf
         if ($cat['hasChildren'] == true) {
             $sub = [];
-            // Erstelle den ul-Tag
             $sub[] = '<ul' . $ul . '>';
-            // Function ruft sich selbst auf sollten Kinder gefunden werden.
             $sub[] = bsnavi5($cat['children']);
-            // -------------------------------------------------------------
             $sub[] = '</ul>';
             $subnavi = join("\n", $sub);
         }
-        // Auslesen des Kategorienamens
+
         $catname = $cat['catName'];
-        // aktive Kategorie
         if ($cat['active'] == true) {
             $active = ' active';
         }
-        // Generiere den Link
+
         $catname = '<a class="' . $aclass . $active . '" href="' . $cat['url'] . '"' . $link_extra . '>' . $catname . '</a>';
-        // Generiere den li-Tag
         $output[] = '<li ' . $li . '>' . $catname . $subnavi . '</li>';
     }
     return implode("\n", $output);
 }
+
 use FriendsOfRedaxo\NavigationArray\BuildArray;
-$NavigationArray =  BuildArray::create()->setDepth(4)->generate();
+$NavigationArray = BuildArray::create()->setDepth(4)->generate();
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -320,7 +311,7 @@ function myNavi_demo($data = array())
             $liclass .= 'uk-active';
         }
         if ($liclass != '') {
-            $liclass =  ' class="' . $liclass . '"';
+            $liclass = ' class="' . $liclass . '"';
         }
         $catname = '<a href="' . $cat['url'] . '">' . $catname . '</a>';
         $output[] = '<li' . $liclass . '>' . $catname . $subnavi . '</li>';
@@ -344,23 +335,19 @@ $navigation = '
     <nav class="uk-box-shadow-small uk-background-secondary uk-light " uk-navbar>
         <div class="uk-navbar-left">
             <a class="uk-navbar-item uk-logo" title="Logo: <?=rex::getServerName()?>" href="/">
-            <img class="logo" name="Logo" src="<?=rex_url::media()?>logo.svg" alt="">
+                <img class="logo" name="Logo" src="<?=rex_url::media()?>logo.svg" alt="">
             </a>
         </div>
         <div class="uk-visible@m uk-navbar-center uk-text-large">
             <?= $navigation; ?>
         </div>
-
         <div class="uk-navbar-right">
-        <a class="uk-icon-button uk-margin-right" href="https://github.com/FriendsOfREDAXO" uk-icon="icon: github"></a>
-           
+            <a class="uk-icon-button uk-margin-right" href="https://github.com/FriendsOfREDAXO" uk-icon="icon: github"></a>
         </div>
     </nav>
 </div>
 <!--- ENDE NAVI-BAR --->
 ```
-
-
 
 ## Beispiel: Breadcrumb 
 
@@ -395,7 +382,7 @@ $NavigationArray = new BuildArray(0, 4, 20);
 $result = $NavigationArray->setCategoryFilterCallback(function ($cat) {
         // Nur aktive Kategorien auswählen
         return $cat['active'];
- })->generate();
+})->generate();
 echo '
     <nav aria-label="Breadcrumb">
     <ul class="uk-breadcrumb">'
@@ -423,18 +410,17 @@ setCategoryFilterCallback(callable $callback): self
 Die Methode gibt das `NavigationArray`-Objekt zurück, was das Methoden-Chainen ermöglicht.
 
 ### Beispiel
-Das folgende Beispiel zeigt, wie man einen Filter definieren kann, der alle Kategorien mit der Bezeichnung `ìrgendwas` herausfiltert:
+Das folgende Beispiel zeigt, wie man einen Filter definieren kann, der alle Kategorien mit der Bezeichnung `irgendwas` herausfiltert:
 
 ```php
-$navigation =  new BuildArray();
+$navigation = new BuildArray();
 $navigation->setCategoryFilterCallback(function($cat) {
     return $cat->getName() !== 'irgendwas';
 });
 ```
 
-### Tipp:
+### Tipp
 Der Filter-Callback sollte so effizient wie möglich gestaltet werden, um die Leistung nicht negativ zu beeinflussen, besonders bei großen Kategoriestrukturen.
-
 
 ## `setCustomDataCallback`
 
