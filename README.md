@@ -76,7 +76,7 @@ use FriendsOfRedaxo\NavigationArray\BuildArray;
 $navArray = new BuildArray(-1, 3);
 ```
 
-#### Übergabe mehrerer Kategorien
+#### Übergabe mehrerer Kategorien als Array
 
 ```php
 $navArray = new BuildArray([6, 10, 102], 3);
@@ -93,7 +93,10 @@ $navArray = BuildArray::create()->setDepth(3)->generate();
 - `setStart($start)`: Setzt die Startkategorie/n. Eingabe als INT oder Array mehrerer Kategorien z.B: `[2, 3, 6]`, standardmäßig `-1` für automatische Erkennung.
 - `setDepth($depth)`: Setzt die maximale Tiefe, bezieht sich auf den `root` der der ausgewählten Kategorie/n. Beginnend bei 0.
 - `setIgnore($ignore)`: Bestimmt, ob Offline-Kategorien ignoriert werden sollen, Standard: `true`.
+- `setCategoryFilterCallback(callable $callback)`: Setzt einen Callback, um Kategorien zu filtern.
+- `setCustomDataCallback(callable $callback)`: Setzt einen Callback, um benutzerdefinierte Daten hinzuzufügen.
 - `generate()`: Generiert die Navigationsstruktur als Array.
+- `toJson()`: Gibt das generierte Navigationsarray als JSON zurück.
 
 ## Konstruktor
 
