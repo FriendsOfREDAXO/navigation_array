@@ -6,6 +6,8 @@ use rex_addon;
 use rex_article;
 use rex_category;
 use rex_clang;
+use rex_exception;
+use rex_logger;
 use rex_yrewrite;
 
 use function call_user_func;
@@ -24,6 +26,7 @@ class BuildArray
     private $level;
     private $start;
     private $startCats;
+    private $excludedCategories = []; // Neue Eigenschaft
 
     public function __construct($start = -1, $depth = 4, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
     {
@@ -32,6 +35,23 @@ class BuildArray
         $this->ignoreOfflines = $ignoreOfflines;
         $this->depthSaved = $depthSaved;
         $this->level = $level;
+    }
+
+    public function setExcludedCategories($excludedCategories): self
+    {
+        if (is_int($excludedCategories)) {
+            $excludedCategories = [$excludedCategories];
+        }
+
+        if (is_array($excludedCategories)) {
+            $this->excludedCategories = $excludedCategories;
+        } else {
+            $message = 'Excluded categories must be an integer or an array of integers.';
+            rex_logger::logError(E_USER_ERROR, $message, __FILE__, __LINE__);
+            throw new rex_exception($message);
+        }
+
+        return $this;
     }
 
     public function setStart($start): self
@@ -80,6 +100,11 @@ class BuildArray
 
         foreach ($this->startCats as $cat) {
             if (!$this->isCategoryPermitted($cat)) {
+                continue;
+            }
+
+            // Ausschlusslogik prüfen
+            if (in_array($cat->getId(), $this->excludedCategories)) {
                 continue;
             }
 
@@ -153,9 +178,16 @@ class BuildArray
 
         $catId = $cat->getId();
 
-        $children = $this->level <= $this->depth && $cat->getChildren($this->ignoreOfflines)
-            ? ['child' => $this->generateSubCategories($cat)]
-            : ['child' => []];
+        // Unterkategorien prüfen und ggf. ausschließen
+        $children = [];
+        if ($this->level <= $this->depth && $cat->getChildren($this->ignoreOfflines)) {
+            $childCats = $cat->getChildren($this->ignoreOfflines);
+            foreach ($childCats as $child) {
+                if (!in_array($child->getId(), $this->excludedCategories)) {
+                    $children[] = $this->processCategory($child, $currentCatpath, $currentCat_id);
+                }
+            }
+        }
 
         $categoryArray = [
             'catId' => $catId,
@@ -163,8 +195,8 @@ class BuildArray
             'level' => $this->level,
             'catName' => $cat->getName(),
             'url' => $cat->getUrl(),
-            'hasChildren' => !empty($children['child']),
-            'children' => $children['child'],
+            'hasChildren' => !empty($children),
+            'children' => $children,
             'path' => $cat->getPathAsArray(),
             'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
             'current' => $currentCat_id == $catId,
@@ -176,6 +208,7 @@ class BuildArray
                 $categoryArray = array_merge($categoryArray, $customData);
             }
         }
+
         return $categoryArray;
     }
 
