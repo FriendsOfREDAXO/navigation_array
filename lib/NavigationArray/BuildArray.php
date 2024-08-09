@@ -6,6 +6,8 @@ use rex_addon;
 use rex_article;
 use rex_category;
 use rex_clang;
+use rex_exception;
+use rex_logger;
 use rex_yrewrite;
 
 use function call_user_func;
@@ -35,7 +37,6 @@ class BuildArray
         $this->level = $level;
     }
 
-    // Methode zum Setzen der auszuschließenden Kategorien
     public function setExcludedCategories($excludedCategories): self
     {
         if (is_int($excludedCategories)) {
@@ -45,7 +46,9 @@ class BuildArray
         if (is_array($excludedCategories)) {
             $this->excludedCategories = $excludedCategories;
         } else {
-            throw new \InvalidArgumentException('Excluded categories must be an integer or an array of integers.');
+            $message = 'Excluded categories must be an integer or an array of integers.';
+            rex_logger::logError(E_USER_ERROR, $message, __FILE__, __LINE__);
+            throw new rex_exception($message);
         }
 
         return $this;
