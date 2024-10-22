@@ -21,19 +21,17 @@ class BuildArray
     private $categoryFilterCallback;
     private $customDataCallback;
     private $depth;
-    private $depthSaved;
     private $ignoreOfflines;
     private $level;
     private $start;
     private $startCats;
     private $excludedCategories = []; // Neue Eigenschaft
 
-    public function __construct($start = -1, $depth = 4, $ignoreOfflines = true, $depthSaved = 0, $level = 0)
+    public function __construct($start = -1, $depth = 4, $ignoreOfflines = true, $level = 0)
     {
         $this->start = $start;
         $this->depth = $depth;
         $this->ignoreOfflines = $ignoreOfflines;
-        $this->depthSaved = $depthSaved;
         $this->level = $level;
     }
 
@@ -69,12 +67,6 @@ class BuildArray
     public function setIgnore($ignore): self
     {
         $this->ignoreOfflines = $ignore;
-        return $this;
-    }
-
-    public function setDepthSaved($saved): self
-    {
-        $this->depthSaved = $saved;
         return $this;
     }
 
@@ -155,7 +147,6 @@ class BuildArray
             $startCat = rex_category::get($this->start);
             if ($startCat) {
                 $this->startCats = $startCat->getChildren($this->ignoreOfflines);
-                $this->depthSaved = $this->depthSaved ?: $this->depth;
             } else {
                 $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
             }
