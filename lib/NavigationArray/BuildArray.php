@@ -21,7 +21,6 @@ class BuildArray
     private $categoryFilterCallback;
     private $customDataCallback;
     private $depth;
-    private $depthSaved;
     private $ignoreOfflines;
     private $level;
     private $start;
@@ -33,7 +32,6 @@ class BuildArray
         $this->start = $start;
         $this->depth = $depth;
         $this->ignoreOfflines = $ignoreOfflines;
-        $this->depthSaved = $depthSaved;
         $this->level = $level;
     }
 
@@ -95,11 +93,6 @@ class BuildArray
         return $this;
     }
 
-    public function setDepthSaved($saved): self
-    {
-        $this->depthSaved = $saved;
-        return $this;
-    }
 
     /**
      * @param int $lvl
@@ -212,7 +205,6 @@ class BuildArray
             $startCat = rex_category::get($this->start);
             if ($startCat) {
                 $this->startCats = $startCat->getChildren($this->ignoreOfflines);
-                $this->depthSaved = $this->depthSaved ?: $this->depth;
             } else {
                 $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
             }
