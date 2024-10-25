@@ -434,3 +434,173 @@ In diesem Beispiel wird die `setCustomDataCallback` Methode verwendet, um benutz
 
 #### Hinweis
 Der Callback sollte effizient gestaltet werden, um die Leistung nicht zu beeinträchtigen.
+
+##  Methoden
+
+### Konstruktor
+
+```php
+public function __construct(
+    int $start = -1,          // Start-Kategorie ID (-1 für Root)
+    int $depth = 4,           // Maximale Tiefe
+    bool $ignoreOfflines = true, // Offline-Kategorien ignorieren
+    $depthSaved = 0,          // Gespeicherte Tiefe
+    int $level = 0            // Aktuelles Level
+)
+```
+
+Erstellt eine neue Instanz der NavigationArray-Klasse.
+
+### Statische Methoden
+
+#### create()
+```php
+public static function create(): self
+```
+Factory-Methode zum einfachen Erstellen einer neuen Instanz.
+
+### Hauptmethoden
+
+#### generate()
+```php
+public function generate(): array
+```
+Generiert das Navigations-Array mit allen Kategorien und Unterkategorien basierend auf den konfigurierten Einstellungen.
+
+#### toJson()
+```php
+public function toJson(): string
+```
+Generiert das Navigations-Array und gibt es als JSON-formatierte Zeichenkette zurück.
+
+### Setter-Methoden
+
+#### setExcludedCategories()
+```php
+public function setExcludedCategories(int|array $excludedCategories): self
+```
+Legt fest, welche Kategorien von der Navigation ausgeschlossen werden sollen.
+- Parameter kann eine einzelne Kategorie-ID oder ein Array von IDs sein
+
+#### setStart()
+```php
+public function setStart(int $start): self
+```
+Setzt die Start-Kategorie für die Navigation.
+- `-1`: Verwendet YRewrite Mount-ID oder Root-Kategorie
+- `0`: Startet von der Root-Kategorie
+- `>0`: Startet von der angegebenen Kategorie-ID
+
+#### setDepth()
+```php
+public function setDepth(int $depth): self
+```
+Legt die maximale Tiefe der Navigation fest (Standard: 4).
+
+#### setIgnore()
+```php
+public function setIgnore(int $ignore): self
+```
+Legt fest, ob Offline-Kategorien ignoriert werden sollen (Standard: true).
+
+#### setLevel()
+```php
+public function setLevel(int $lvl): self
+```
+Setzt das aktuelle Level in der Navigation.
+
+### Callback-Methoden
+
+#### setCategoryFilterCallback()
+```php
+public function setCategoryFilterCallback(callable $callback): self
+```
+Setzt eine Callback-Funktion zum Filtern von Kategorien.
+- Callback erhält Kategorie-Objekt als Parameter
+- Muss true/false zurückgeben, ob Kategorie angezeigt werden soll
+
+#### setCustomDataCallback()
+```php
+public function setCustomDataCallback(callable $callback): self
+```
+Setzt eine Callback-Funktion zum Hinzufügen benutzerdefinierter Daten.
+- Callback erhält Kategorie-Objekt als Parameter
+- Muss Array mit zusätzlichen Daten zurückgeben
+
+### Verwendung von toJson()
+
+```php
+// Grundlegende Verwendung
+$nav = BuildArray::create()->setDepth(3);
+$jsonString = $nav->toJson();
+
+// Mit allen Optionen
+$nav = BuildArray::create()
+    ->setStart(5)             // Startet bei Kategorie ID 5
+    ->setDepth(2)            // Zwei Ebenen tief
+    ->setIgnore(true)        // Ignoriert Offline-Kategorien
+    ->setExcludedCategories([10, 15]) // Schließt Kategorien aus
+    ->toJson();              // Gibt JSON zurück
+
+// JSON in Variable speichern und ausgeben
+$jsonNavigation = $nav->toJson();
+echo $jsonNavigation;
+
+// Direkt als AJAX Response verwenden
+header('Content-Type: application/json');
+echo BuildArray::create()
+    ->setDepth(3)
+    ->toJson();
+
+// JSON decodieren für weitere Verarbeitung
+$navigationArray = json_decode($nav->toJson(), true);
+```
+
+Das generierte JSON sieht etwa so aus:
+
+```json
+[
+    {
+        "catId": 1,
+        "parentId": 0,
+        "level": 0,
+        "catName": "Home",
+        "url": "/",
+        "hasChildren": true,
+        "children": [
+            {
+                "catId": 5,
+                "parentId": 1,
+                "level": 1,
+                "catName": "Über uns",
+                "url": "/ueber-uns/",
+                "hasChildren": false,
+                "children": [],
+                "path": [1, 5],
+                "active": false,
+                "current": false
+            }
+        ],
+        "path": [1],
+        "active": true,
+        "current": false
+    }
+]
+```
+
+### Allgemeine Verwendungsbeispiele
+
+```php
+// Mit Konstruktor
+$nav = new BuildArray(-1, 3);
+$array = $nav->generate();
+
+// Mit Methoden-Chaining
+$array = BuildArray::create()
+    ->setStart(-1)
+    ->setDepth(3)
+    ->setIgnore(true)
+    ->generate();
+```
+
+
