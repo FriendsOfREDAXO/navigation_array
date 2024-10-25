@@ -588,17 +588,21 @@ Das generierte JSON sieht etwa so aus:
 ]
 ```
 
-## getCurrentCategory()
+## getCategory()
 
-Liefert ein Array mit allen Informationen zur aktuellen Kategorie, egal ob man sich in einem Artikel oder in einer Kategorie befindet.
+Liefert ein Array mit allen Informationen zu einer Kategorie. Funktioniert sowohl für die aktuelle Kategorie als auch für eine spezifische Kategorie-ID.
 
-## Basis-Verwendung
+### Basis-Verwendung
 
 ```php
-$category = BuildArray::create()->getCurrentCategory();
+// Aktuelle Kategorie
+$category = BuildArray::create()->getCategory();
+
+// Spezifische Kategorie
+$category = BuildArray::create()->getCategory(5);
 ```
 
-## Rückgabe-Array
+### Rückgabe-Array
 
 ```php
 [
@@ -610,7 +614,7 @@ $category = BuildArray::create()->getCurrentCategory();
     'children' => [],          // Array der Kindkategorien
     'path' => [0,2,5],        // Pfad von Root zur Kategorie
     'pathCount' => 3,          // Anzahl der Ebenen von Root
-    'active' => true,          // Ist aktiv
+    'active' => true,          // Ist im aktiven Pfad
     'current' => true,         // Ist aktuelle Kategorie
     'cat' => Object,          // REX Category Objekt
     'ycom_permitted' => true,  // YCom-Berechtigung
@@ -619,27 +623,21 @@ $category = BuildArray::create()->getCurrentCategory();
 ]
 ```
 
-## Beispiele
+### Beispiele
 
-### 1. Einfache Breadcrumb
+#### 1. Kategorie-Vergleich
 
 ```php
-$category = BuildArray::create()->getCurrentCategory();
+$currentCat = BuildArray::create()->getCategory();
+$parentCat = BuildArray::create()->getCategory($currentCat['parentId']);
 
-if ($category['path']) {
-    echo '<ul class="breadcrumb">';
-    foreach ($category['path'] as $catId) {
-        $pathCat = rex_category::get($catId);
-        if ($pathCat) {
-            echo '<li><a href="' . $pathCat->getUrl() . '">' . 
-                 $pathCat->getName() . '</a></li>';
-        }
-    }
-    echo '</ul>';
-}
+echo '<div class="category-nav">';
+echo '<h2>' . $parentCat['catName'] . '</h2>';
+echo '<h3>Sie befinden sich hier: ' . $currentCat['catName'] . '</h3>';
+echo '</div>';
 ```
 
-### 2. Mit Custom-Daten
+#### 2. Mit Custom-Daten
 
 ```php
 $category = BuildArray::create()
@@ -649,29 +647,41 @@ $category = BuildArray::create()
             'description' => $cat->getValue('cat_description')
         ];
     })
-    ->getCurrentCategory();
-
-echo '<div class="category-info">';
-echo '<h1>' . $category['catName'] . '</h1>';
-if ($category['image']) {
-    echo '<img src="' . $category['image'] . '">';
-}
-echo '</div>';
-```
-
-### 3. Mit Berechtigungsprüfung
-
-```php
-$category = BuildArray::create()
-    ->setCategoryFilterCallback(function($cat) {
-        return $cat->getValue('show_in_nav') == 1;
-    })
-    ->getCurrentCategory();
+    ->getCategory(5);
 
 if ($category['is_permitted']) {
-    echo $category['catName'];
-} else {
-    echo 'Zugriff nicht erlaubt';
+    echo '<div class="category-info">';
+    echo '<h1>' . $category['catName'] . '</h1>';
+    if ($category['image']) {
+        echo '<img src="' . $category['image'] . '">';
+    }
+    echo '</div>';
+}
+```
+
+#### 3. Mehrere Kategorien verarbeiten
+
+```php
+$builder = BuildArray::create()
+    ->setCategoryFilterCallback(function($cat) {
+        return $cat->getValue('show_in_nav') == 1;
+    });
+
+$categories = [
+    $builder->getCategory(3),  // Kategorie mit ID 3
+    $builder->getCategory(4),  // Kategorie mit ID 4
+    $builder->getCategory()    // Aktuelle Kategorie
+];
+
+foreach ($categories as $category) {
+    if ($category['is_permitted']) {
+        echo '<div class="cat-box' . 
+             ($category['current'] ? ' current' : '') . 
+             ($category['active'] ? ' active' : '') . 
+             '">';
+        echo $category['catName'];
+        echo '</div>';
+    }
 }
 ```
 
