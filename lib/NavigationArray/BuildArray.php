@@ -326,13 +326,23 @@ class BuildArray
         $currentCatpath = $currentCat ? $currentCat->getPathAsArray() : [];
         $currentCat_id = $currentCat ? $currentCat->getId() : 0;
 
+        // Kinder mit processCategory verarbeiten
+        $children = [];
+        $childCategories = $cat->getChildren($this->ignoreOfflines);
+        if ($childCategories) {
+            foreach ($childCategories as $childCat) {
+                // Kinder durch die ursprüngliche Methode verarbeiten
+                $children[] = $this->processCategory($childCat, $currentCatpath, $currentCat_id);
+            }
+        }
+
         $categoryArray = [
             'catId' => $catId,
             'parentId' => $cat->getParentId(),
             'catName' => $cat->getName(),
             'url' => $cat->getUrl(),
-            'hasChildren' => count($cat->getChildren($this->ignoreOfflines)) > 0,
-            'children' => $cat->getChildren($this->ignoreOfflines),
+            'hasChildren' => !empty($children),
+            'children' => $children,  // Kinder aus processCategory
             'path' => $path,
             'pathCount' => count($path),
             'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
