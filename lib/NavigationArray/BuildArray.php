@@ -290,4 +290,59 @@ class BuildArray
 
         return $result;
     }
+
+    /**
+     * Get the current category as array including permission sratus and the category object.
+     *
+     * @return array
+     */
+    public function getCurrentCategory(): array
+    {
+        $currentCat = rex_category::getCurrent();
+
+        if (!$currentCat) {
+            return [];
+        }
+
+        // YCom-Berechtigungen prüfen
+        $hasYcomPermissions = $this->isCategoryPermitted($currentCat);
+
+        // Filter-Status prüfen
+        $isFilterPermitted = true;
+        if (is_callable($this->categoryFilterCallback)) {
+            $isFilterPermitted = call_user_func($this->categoryFilterCallback, $currentCat);
+        }
+
+        $catId = $currentCat->getId();
+        $path = $currentCat->getPathAsArray();
+        $currentCatpath = $path;
+        $currentCat_id = $catId;
+
+        $categoryArray = [
+            'catId' => $catId,
+            'parentId' => $currentCat->getParentId(),
+            'catName' => $currentCat->getName(),
+            'url' => $currentCat->getUrl(),
+            'hasChildren' => count($currentCat->getChildren($this->ignoreOfflines)) > 0,
+            'children' => $currentCat->getChildren($this->ignoreOfflines),
+            'path' => $path,
+            'pathCount' => count($path),
+            'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
+            'current' => true,
+            'cat' => $currentCat,
+            'ycom_permitted' => $hasYcomPermissions,      // YCom-Berechtigung
+            'filter_permitted' => $isFilterPermitted,     // Filter-Status
+            'is_permitted' => $hasYcomPermissions && $isFilterPermitted  // Gesamtstatus
+        ];
+
+        // Custom Data hinzufügen wenn ein Callback definiert ist
+        if (is_callable($this->customDataCallback)) {
+            $customData = call_user_func($this->customDataCallback, $currentCat);
+            if (is_array($customData)) {
+                $categoryArray = array_merge($categoryArray, $customData);
+            }
+        }
+
+        return $categoryArray;
+    }
 }
