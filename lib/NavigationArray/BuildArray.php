@@ -290,4 +290,77 @@ class BuildArray
 
         return $result;
     }
+
+    /**
+     * Get category information either for current category or by ID
+     * 
+     * @param int|null $categoryId Optional category ID
+     * @return array
+     */
+    public function getCategory(?int $categoryId = null): array
+    {
+        // Kategorie ermitteln (entweder durch ID oder current)
+        $cat = null;
+        if ($categoryId !== null) {
+            $cat = rex_category::get($categoryId);
+        } else {
+            $cat = rex_category::getCurrent();
+        }
+
+        if (!$cat) {
+            return [];
+        }
+
+        // YCom-Berechtigungen prüfen
+        $hasYcomPermissions = $this->isCategoryPermitted($cat);
+
+        // Filter-Status prüfen
+        $isFilterPermitted = true;
+        if (is_callable($this->categoryFilterCallback)) {
+            $isFilterPermitted = call_user_func($this->categoryFilterCallback, $cat);
+        }
+
+        $catId = $cat->getId();
+        $path = $cat->getPathAsArray();
+        $currentCat = rex_category::getCurrent();
+        $currentCatpath = $currentCat ? $currentCat->getPathAsArray() : [];
+        $currentCat_id = $currentCat ? $currentCat->getId() : 0;
+
+        // Kinder mit processCategory verarbeiten
+        $children = [];
+        $childCategories = $cat->getChildren($this->ignoreOfflines);
+        if ($childCategories) {
+            foreach ($childCategories as $childCat) {
+                // Kinder durch die ursprüngliche Methode verarbeiten
+                $children[] = $this->processCategory($childCat, $currentCatpath, $currentCat_id);
+            }
+        }
+
+        $categoryArray = [
+            'catId' => $catId,
+            'parentId' => $cat->getParentId(),
+            'catName' => $cat->getName(),
+            'url' => $cat->getUrl(),
+            'hasChildren' => !empty($children),
+            'children' => $children,  // Kinder aus processCategory
+            'path' => $path,
+            'pathCount' => count($path),
+            'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
+            'current' => $currentCat_id == $catId,
+            'cat' => $cat,
+            'ycom_permitted' => $hasYcomPermissions,
+            'filter_permitted' => $isFilterPermitted,
+            'is_permitted' => $hasYcomPermissions && $isFilterPermitted
+        ];
+
+        // Custom Data hinzufügen wenn ein Callback definiert ist
+        if (is_callable($this->customDataCallback)) {
+            $customData = call_user_func($this->customDataCallback, $cat);
+            if (is_array($customData)) {
+                $categoryArray = array_merge($categoryArray, $customData);
+            }
+        }
+
+        return $categoryArray;
+    }
 }

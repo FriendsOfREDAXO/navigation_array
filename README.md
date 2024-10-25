@@ -588,19 +588,91 @@ Das generierte JSON sieht etwa so aus:
 ]
 ```
 
-### Allgemeine Verwendungsbeispiele
+## getCurrentCategory()
+
+Liefert ein Array mit allen Informationen zur aktuellen Kategorie, egal ob man sich in einem Artikel oder in einer Kategorie befindet.
+
+## Basis-Verwendung
 
 ```php
-// Mit Konstruktor
-$nav = new BuildArray(-1, 3);
-$array = $nav->generate();
+$category = BuildArray::create()->getCurrentCategory();
+```
 
-// Mit Methoden-Chaining
-$array = BuildArray::create()
-    ->setStart(-1)
-    ->setDepth(3)
-    ->setIgnore(true)
-    ->generate();
+## Rückgabe-Array
+
+```php
+[
+    'catId' => 5,              // ID der Kategorie
+    'parentId' => 2,           // ID der Elternkategorie
+    'catName' => 'News',       // Name der Kategorie
+    'url' => '/news/',         // URL der Kategorie
+    'hasChildren' => true,     // Hat Unterkategorien
+    'children' => [],          // Array der Kindkategorien
+    'path' => [0,2,5],        // Pfad von Root zur Kategorie
+    'pathCount' => 3,          // Anzahl der Ebenen von Root
+    'active' => true,          // Ist aktiv
+    'current' => true,         // Ist aktuelle Kategorie
+    'cat' => Object,          // REX Category Objekt
+    'ycom_permitted' => true,  // YCom-Berechtigung
+    'filter_permitted' => true,// Filter-Erlaubnis
+    'is_permitted' => true,    // Gesamtstatus der Berechtigungen
+]
+```
+
+## Beispiele
+
+### 1. Einfache Breadcrumb
+
+```php
+$category = BuildArray::create()->getCurrentCategory();
+
+if ($category['path']) {
+    echo '<ul class="breadcrumb">';
+    foreach ($category['path'] as $catId) {
+        $pathCat = rex_category::get($catId);
+        if ($pathCat) {
+            echo '<li><a href="' . $pathCat->getUrl() . '">' . 
+                 $pathCat->getName() . '</a></li>';
+        }
+    }
+    echo '</ul>';
+}
+```
+
+### 2. Mit Custom-Daten
+
+```php
+$category = BuildArray::create()
+    ->setCustomDataCallback(function($cat) {
+        return [
+            'image' => $cat->getValue('cat_image'),
+            'description' => $cat->getValue('cat_description')
+        ];
+    })
+    ->getCurrentCategory();
+
+echo '<div class="category-info">';
+echo '<h1>' . $category['catName'] . '</h1>';
+if ($category['image']) {
+    echo '<img src="' . $category['image'] . '">';
+}
+echo '</div>';
+```
+
+### 3. Mit Berechtigungsprüfung
+
+```php
+$category = BuildArray::create()
+    ->setCategoryFilterCallback(function($cat) {
+        return $cat->getValue('show_in_nav') == 1;
+    })
+    ->getCurrentCategory();
+
+if ($category['is_permitted']) {
+    echo $category['catName'];
+} else {
+    echo 'Zugriff nicht erlaubt';
+}
 ```
 
 ## Autor
