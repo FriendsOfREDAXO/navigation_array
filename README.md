@@ -606,20 +606,48 @@ $category = BuildArray::create()->getCategory(5);
 
 ```php
 [
-    'catId' => 5,              // ID der Kategorie
-    'parentId' => 2,           // ID der Elternkategorie
-    'catName' => 'News',       // Name der Kategorie
-    'url' => '/news/',         // URL der Kategorie
-    'hasChildren' => true,     // Hat Unterkategorien
-    'children' => [],          // Array der Kindkategorien
-    'path' => [0,2,5],        // Pfad von Root zur Kategorie
-    'pathCount' => 3,          // Anzahl der Ebenen von Root
-    'active' => true,          // Ist im aktiven Pfad
-    'current' => true,         // Ist aktuelle Kategorie
-    'cat' => Object,          // REX Category Objekt
-    'ycom_permitted' => true,  // YCom-Berechtigung
-    'filter_permitted' => true,// Filter-Erlaubnis
-    'is_permitted' => true,    // Gesamtstatus der Berechtigungen
+    // Hauptkategorie-Informationen
+    'catId' => 5,                  // ID der Kategorie
+    'parentId' => 2,               // ID der Elternkategorie
+    'catName' => 'News',           // Name der Kategorie
+    'url' => '/news/',             // URL der Kategorie
+    'hasChildren' => true,         // Hat Unterkategorien
+    'path' => [0,2,5],            // Pfad von Root zur Kategorie
+    'pathCount' => 3,              // Anzahl der Ebenen von Root
+    'active' => true,              // Ist im aktiven Pfad
+    'current' => true,             // Ist aktuelle Kategorie
+    'cat' => Object,               // REX Category Objekt
+    'ycom_permitted' => true,      // YCom-Berechtigung
+    'filter_permitted' => true,    // Filter-Erlaubnis
+    'is_permitted' => true,        // Gesamtstatus der Berechtigungen
+    
+    // Kinder-Array (aus processCategory)
+    'children' => [
+        [
+            'catId' => 15,         // ID der Kindkategorie
+            'parentId' => 5,       // ID der Elternkategorie (unsere Hauptkategorie)
+            'level' => 3,          // Level aus processCategory
+            'catName' => 'Events', // Name der Kindkategorie
+            'url' => '/news/events/', // URL der Kindkategorie
+            'hasChildren' => false, // Hat diese Kindkategorie weitere Unterkategorien
+            'children' => [],       // Eventuelle Kinder der Kindkategorie
+            'path' => [0,2,5,15],  // Pfad dieser Kindkategorie
+            'active' => false,      // Ist diese Kindkategorie aktiv
+            'current' => false      // Ist diese Kindkategorie die aktuelle Kategorie
+        ],
+        [
+            'catId' => 16,
+            'parentId' => 5,
+            'level' => 3,
+            'catName' => 'Blog',
+            // ... weitere Eigenschaften wie oben
+        ],
+        // ... weitere Kindkategorien
+    ],
+
+    // Zusätzliche Custom-Daten (wenn definiert)
+    'custom_field' => 'Wert',
+    'another_field' => 'Wert'
 ]
 ```
 
