@@ -335,43 +335,48 @@ $navigation = '
 #### Beispiel: Breadcrumb 
 
 ```php
-<?php 
+<?php
+// UIkit Breadcrumb uses navigation_array
 function bc_uikit($data = array())
-{
-    $output = []; // Initialisierung der Output-Variable
+{   $liclass = '';
+    $output = [];
     foreach ($data as $cat) {
-        $subnavi = ''; // Initialisierung der Subnavigation
-        if ($cat['hasChildren']) {
-            // Rekursiver Aufruf für Unterkategorien
-            $sub = bc_uikit($cat['children']);
+        if ($cat['active'] == false)    
+        {
+            continue;
+        }  
+        $subnavi = '';
+        if ($cat['hasChildren'] == true) {
+            $sub = [];
+            $sub[] = bc_uikit($cat['children']);
             $subnavi = join("\n", $sub);
-        }
-        $url = ' href="'.$cat['url'].'"';
-        $liclass = '';
+        }       
+        $catname = $cat['catName'];
         if ('REX_ARTICLE_ID' == $cat['catId']) {
-            $liclass = ' class="uk-disabled" aria-current="page"';
-            $url = '';
+            $liclass = ' class="uk-disabled"';
+            $cat['url']='';
         }
-        $catname = '<a'.$url.'>'.$cat['catName'].'</a>';
-        
-        $output[] = '<li'.$liclass.'>' . $catname .'</li>'.$subnavi;
+        $catname = '<a href="'.$cat['url'].'">'.$catname.'</a>';     
+        if ($cat['active'] == true)       
+        {
+	         $output[] = '<li'.$liclass.'>' . $catname .'</li>'.$subnavi;
+
+        }
     }
-    return implode("\n", $output);
+    if(count($output)>0)
+    {    
+    return join("\n", $output);
+    }    
 }
 
-// Breadcrumb erzeugen
 use FriendsOfRedaxo\NavigationArray\BuildArray;
-$NavigationArray = new BuildArray(0, 4, 20);
-$result = $NavigationArray->setCategoryFilterCallback(function ($cat) {
-        // Nur aktive Kategorien auswählen
-        return $cat['active'];
-})->generate();
+$navarray = BuildArray::create()->setDepth(10)->generate();
+
 echo '
-    <nav aria-label="Breadcrumb">
-    <ul class="uk-breadcrumb">'
-    . bc_uikit($result) .
+    <ul class="uk-breadcrumb">
+    <li><a title="Home" href="/"><span data-uk-icon="home"></span></a></li>'
+    .bc_uikit($navarray).
     '</ul>
-    </nav>
 ';
 ?>
 ```
