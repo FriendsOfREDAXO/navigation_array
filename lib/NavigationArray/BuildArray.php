@@ -93,7 +93,6 @@ class BuildArray
         return $this;
     }
 
-
     /**
      * @param int $lvl
      * @return $this
@@ -129,19 +128,9 @@ class BuildArray
         $this->initializeStartCategory();
 
         foreach ($this->startCats as $cat) {
-            //check ycom permissions
-            if (!$this->isCategoryPermitted($cat)) {
-                continue;
+            if ($this->isPermitted($cat)) {
+                $result[] = $this->processCategory($cat, $currentCatpath, $currentCat_id);
             }
-            //check excluded categories
-            if (in_array($cat->getId(), $this->excludedCategories)) {
-                continue;
-            }
-            //check category filter callback
-            if (is_callable($this->categoryFilterCallback) && !call_user_func($this->categoryFilterCallback, $cat)) {
-                continue;
-            }
-            $result[] = $this->processCategory($cat, $currentCatpath, $currentCat_id);
         }
         return array_filter($result);
     }
@@ -226,6 +215,33 @@ class BuildArray
     }
 
     /**
+     * Check if category meets all navigation requirements
+     * Prüft ob die Kategorie alle Anforderungen erfüllt (YCom, Ausschlüsse, Filter)
+     *
+     * @param rex_category $cat
+     * @return bool
+     */
+    private function isPermitted(rex_category $cat): bool 
+    {
+        // Prüfe YCom Berechtigungen
+        if (!$this->isCategoryPermitted($cat)) {
+            return false;
+        }
+
+        // Prüfe ob Kategorie ausgeschlossen ist
+        if (in_array($cat->getId(), $this->excludedCategories)) {
+            return false;
+        }
+
+        // Prüfe Category Filter Callback
+        if (is_callable($this->categoryFilterCallback) && !call_user_func($this->categoryFilterCallback, $cat)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * @param rex_category $cat
      * @param array $currentCatpath
      * @param int $currentCat_id
@@ -244,7 +260,7 @@ class BuildArray
         if ($this->level <= $this->depth && $cat->getChildren($this->ignoreOfflines)) {
             $childCats = $cat->getChildren($this->ignoreOfflines);
             foreach ($childCats as $child) {
-                if (!in_array($child->getId(), $this->excludedCategories)) {
+                if ($this->isPermitted($child)) {
                     $children[] = $this->processCategory($child, $currentCatpath, $currentCat_id);
                 }
             }
@@ -271,24 +287,6 @@ class BuildArray
         }
 
         return $categoryArray;
-    }
-
-    /**
-     * @param $parentCat
-     * @return array
-     */
-    private function generateSubCategories(rex_category $parentCat): array
-    {
-        $originalStart = $this->start;
-        $this->start = $parentCat->getId();
-
-        ++$this->level;
-        $result = $this->generate();
-        --$this->level;
-
-        $this->start = $originalStart;
-
-        return $result;
     }
 
     /**
@@ -331,8 +329,9 @@ class BuildArray
         $childCategories = $cat->getChildren($this->ignoreOfflines);
         if ($childCategories) {
             foreach ($childCategories as $childCat) {
-                // Kinder durch die ursprüngliche Methode verarbeiten
-                $children[] = $this->processCategory($childCat, $currentCatpath, $currentCat_id);
+                if ($this->isPermitted($childCat)) {
+                    $children[] = $this->processCategory($childCat, $currentCatpath, $currentCat_id);
+                }
             }
         }
 
