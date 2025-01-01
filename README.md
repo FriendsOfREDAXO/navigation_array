@@ -1,14 +1,24 @@
-# REDAXO FOR NavigationArray
-Navigation Array ist ein PHP Klasse für die einfache Erstellung einer Navigationsstruktur als Array.
+Okay, hier ist die gesamte `README.md` in einem einzigen Markdown-Block, wobei in jedem Codebeispiel `use FriendsOfRedaxo\NavigationArray\BuildArray;` eingefügt wurde:
+
+```markdown
+# REDAXO Navigation Array
+
+Navigation Array ist eine PHP-Klasse für die einfache Erstellung einer Navigationsstruktur als Array.
+
 ## Features
-- Offline Artikel und Ycom Rechte werden berücksichtigt
-- Startkategorie kann frei gewählt werden
-- Tiefe kann festgelegt werden
-- Kategorien filtern und manipulieren (z.B. mit Meta Infos) über Callbacks
-- Mitgelieferte Fragmente für die HTML Ausgabe der Navigation
+
+-   Offline-Artikel und YCom-Rechte werden berücksichtigt.
+-   Startkategorie kann frei gewählt werden.
+-   Tiefe kann festgelegt werden.
+-   Kategorien filtern und manipulieren (z.B. mit Meta-Infos) über Callbacks.
+-   Mitgelieferte Fragmente für die HTML-Ausgabe der Navigation.
+-   `walk`-Methode für einfache, rekursive Navigationstraversierung.
+-   `getCategory`-Methode zum Abrufen von Kategorieinformationen (inkl. Kindkategorien).
 
 ## Array-Struktur
-So sieht das generierte Array aus. Es enthält alle Kategorien und Unterkategorien bis zur angegebenen Tiefe. Offline Kategorien und Rechte aus Ycom werden vorher aus dem Array entfernt.
+
+So sieht das generierte Array aus. Es enthält alle Kategorien und Unterkategorien bis zur angegebenen Tiefe. Offline-Kategorien und Rechte aus YCom werden vorher aus dem Array entfernt.
+
 ```php
 array:7 [▼
     0 => array:11 [▶]
@@ -46,10 +56,10 @@ array:7 [▼
 ]
 ```
 
-
 ## Array generieren
 
 ### Aufruf mit Konstruktor
+
 ```php
 // define namespace
 use FriendsOfRedaxo\NavigationArray\BuildArray;
@@ -74,11 +84,13 @@ $navigationArray = BuildArray::create()
     ->generate();
 ```
 
-## HTML Ausgabe
+## HTML-Ausgabe
+
 In erster Linie generiert Navigation Array ein Array. Die Ausgabe als HTML ist Aufgabe des Entwicklers. Hier sind einige Beispiele, wie das Array in HTML integriert werden kann.
 
 ### Fragmente
-Mit Fragmenten wird die Logic sauber vom Code getrennt. Das Fragment 'navigation.php' kann kopiert, angepasst und in `project` oder `theme` Ordner abgelegt werden. 
+
+Mit Fragmenten wird die Logik sauber vom Code getrennt. Das Fragment `navigation.php` kann kopiert, angepasst und in `project` oder `theme`-Ordner abgelegt werden.
 
 ```php
 // Festlegen des Namespace
@@ -101,12 +113,15 @@ $fragment->setVar('activeClass', 'active');
 </nav>
 ```
 
+### PHP-Funktion
 
-### PHP Funktion
-Alternativ kann man das Array auch direkt in PHP Verarbeiten hier einige Beispiele
-#### Beispiel einfache Navigation 
+Alternativ kann man das Array auch direkt in PHP verarbeiten. Hier einige Beispiele.
+
+#### Beispiel einfache Navigation
 
 ```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 // Function to generate the navigation list
 function generateNavigationList($items) {
     if (empty($items)) {
@@ -130,7 +145,7 @@ function generateNavigationList($items) {
     return $output;
 }
 
-use FriendsOfRedaxo\NavigationArray\BuildArray;
+
 $NavigationArray = BuildArray::create()->setDepth(3)->generate();
 
 // Generate the navigation list
@@ -140,9 +155,10 @@ $navigationList = generateNavigationList($NavigationArray);
 echo $navigationList;
 ```
 
-#### Beispiel erweiterte Navigation mit Callback 
+#### Beispiel erweiterte Navigation mit Callback
 
 ```php
+<?php
 use FriendsOfRedaxo\NavigationArray\BuildArray;
 
 $mainnavi_array = (new BuildArray())
@@ -162,7 +178,7 @@ function createNavigationItems($navi) {
     $items[] = "<li class=\"{$class_active}{$class_current}{$class_has_child}\"><a href=\"{$navi['url']}\">{$navi['catName']}</a>";
 
     if ($navi['children']) {
-        $items[] = '<button class="child-toggle">X</button>'; 
+        $items[] = '<button class="child-toggle">X</button>';
         $items[] = '<ul>';
 
         foreach ($navi['children'] as $nav_child) {
@@ -202,10 +218,11 @@ Schließlich wird die Hauptnavigation als HTML-Code in der Variable `$mainnaviga
 
 Das Feld `cat_navigationstyp` hat derzeit die Werte "meta, main, footer". Es wird verwendet, um zu bestimmen, welche Navigationselemente in der Hauptnavigation angezeigt werden sollen. In diesem Fall werden nur die Elemente angezeigt, deren `navtype` den Wert 'main' enthält.
 
-#### Beispiel: Bootstrap 5 Navigation 
+#### Beispiel: Bootstrap 5 Navigation
 
 ```php
 <?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 function bsnavi5($data = array())
 {
     $output = array();
@@ -247,7 +264,7 @@ function bsnavi5($data = array())
     return implode("\n", $output);
 }
 
-use FriendsOfRedaxo\NavigationArray\BuildArray;
+
 $NavigationArray = BuildArray::create()->setDepth(4)->generate();
 ?>
 
@@ -267,6 +284,7 @@ $NavigationArray = BuildArray::create()->setDepth(4)->generate();
 
 ```php
 <?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 // UIkit NAVIGATION uses navigation_array AddOn
 function myNavi_demo($data = array())
 {
@@ -305,7 +323,7 @@ function myNavi_demo($data = array())
     }
 }
 // Navigation erzeugen
-use FriendsOfRedaxo\NavigationArray\BuildArray;
+
 $NavigationArray = BuildArray::create()->setDepth(3)->generate();
 $navigation = '
     <ul class="uk-navbar-nav">'
@@ -332,10 +350,11 @@ $navigation = '
 <!--- ENDE NAVI-BAR --->
 ```
 
-#### Beispiel: Breadcrumb 
+#### Beispiel: Breadcrumb
 
 ```php
 <?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 // UIkit Breadcrumb uses navigation_array
 function bc_uikit($data = array())
 {   $liclass = '';
@@ -369,7 +388,7 @@ function bc_uikit($data = array())
     }    
 }
 
-use FriendsOfRedaxo\NavigationArray\BuildArray;
+
 $navarray = BuildArray::create()->setDepth(10)->generate();
 
 echo '
@@ -381,28 +400,137 @@ echo '
 ?>
 ```
 
-## CallbackFilter
+## `walk()`-Methode
 
-### `setCategoryFilterCallback`
+Die `walk()`-Methode ermöglicht es, die Navigation rekursiv zu durchlaufen und dabei eine Callback-Funktion auf jedes Element anzuwenden. Dies ist nützlich für benutzerdefinierte Ausgaben oder Manipulationen der Navigationsdaten.
+
+### Verwendung
+
+```php
+public function walk(callable $callback): void
+```
+
+#### Parameter
+
+-   `$callback`: Eine `callable`-Funktion, die für jedes Navigationselement aufgerufen wird. Die Funktion erhält zwei Parameter:
+    -   `$item`: Das aktuelle Navigationselement (als Array).
+    -   `$level`: Die aktuelle Ebene der Navigation (als Integer).
+
+#### Beispiel: Verschachtelte HTML-Liste
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+// HTML-String zum Aufbau der Navigation
+$htmlNavigation = '';
+$currentLevel = 0;
+$first = true;
+
+$navigation = BuildArray::create()
+    ->setDepth(3)
+    ->setExcludedCategories([32,34])
+    ->setCategoryFilterCallback(function(rex_category $cat){
+        // Hier kannst du deine eigenen Filter setzen
+        return true;
+    })
+    ->setCustomDataCallback(function(rex_category $cat){
+      return [
+        'css_id' => 'cat-'.$cat->getId(),
+        'description' => $cat->getValue('description')
+      ];
+  });
+
+$navigation->walk(function ($item, $level) use (&$htmlNavigation, &$currentLevel, &$first) {
+    
+    // Level check um unnötige Tags zu vermeiden
+    if($level > $currentLevel) {
+       $htmlNavigation .= '<ul>';
+    }
+    if($level < $currentLevel){
+         $diff = $currentLevel - $level;
+         $htmlNavigation .= str_repeat('</ul>', $diff);
+     }
+     $currentLevel = $level;
+   
+    $activeClass = $item['active'] ? ' class="active"' : '';
+
+    $htmlNavigation .= '<li'.$activeClass.'>';
+    $htmlNavigation .= '<a href="' . $item['url'] . '" id="'.$item['css_id'].'">';
+    $htmlNavigation .=  $item['catName'] ;
+    $htmlNavigation .= '</a>';
+    $htmlNavigation .= '</li>';
+});
+// Abschließen der Tags wenn auf der höchsten Ebene
+if($currentLevel > 0){
+ $htmlNavigation .= str_repeat('</ul>', $currentLevel);
+}
+
+// Ausgabe der gesamten Navigation
+echo $htmlNavigation;
+
+```
+
+#### Beispiel: Logausgabe der Navigation
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+$navigation = BuildArray::create()->setDepth(2);
+
+$navigation->walk(function ($item, $level) {
+    echo str_repeat("  ", $level) . "Kategorie: " . $item['catName'] . ", Level: " . $level . ", URL: " . $item['url'] . "<br>";
+});
+```
+
+#### Beispiel: Zugriff auf Custom Data
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+$navigation = BuildArray::create()
+    ->setCustomDataCallback(function($cat) {
+        return ['color' => $cat->getValue('cat_color')];
+    });
+
+$navigation->walk(function ($item, $level) {
+   if (isset($item['color'])){
+     echo str_repeat("  ", $level) . "Kategorie: " . $item['catName'] . ", Farbe: " . $item['color'] . "<br>";
+   }
+});
+```
+
+## Callback-Filter
+
+### `setCategoryFilterCallback()`
 
 #### Beschreibung
-Die `setCategoryFilterCallback` Methode ermöglicht es, einen benutzerdefinierten Filter für die Kategorien zu definieren, die in der Navigation angezeigt werden sollen. Dieser Filter ist ein Callback, der für jede Kategorie aufgerufen wird. Wenn der Callback `true` zurückgibt, wird die Kategorie in die generierte Navigationsstruktur aufgenommen. Andernfalls wird sie übersprungen.
+
+Die `setCategoryFilterCallback`-Methode ermöglicht es, einen benutzerdefinierten Filter für die Kategorien zu definieren, die in der Navigation angezeigt werden sollen. Dieser Filter ist ein Callback, der für jede Kategorie aufgerufen wird. Wenn der Callback `true` zurückgibt, wird die Kategorie in die generierte Navigationsstruktur aufgenommen. Andernfalls wird sie übersprungen.
 
 #### Verwendung
+
 ```php
 setCategoryFilterCallback(callable $callback): self
 ```
 
 #### Parameter
-- `$callback` - Ein `callable`, das als Filter-Callback dient. Dieser Callback nimmt ein Kategorie-Objekt als Parameter und gibt einen booleschen Wert zurück (`true` für die Aufnahme der Kategorie, `false` für deren Ausschluss).
+
+-   `$callback` - Ein `callable`, das als Filter-Callback dient. Dieser Callback nimmt ein Kategorie-Objekt als Parameter und gibt einen booleschen Wert zurück (`true` für die Aufnahme der Kategorie, `false` für deren Ausschluss).
 
 #### Rückgabewert
+
 Die Methode gibt das `NavigationArray`-Objekt zurück, was das Methoden-Chainen ermöglicht.
 
 #### Beispiel
+
 Das folgende Beispiel zeigt, wie man einen Filter definieren kann, der alle Kategorien mit der Bezeichnung `irgendwas` herausfiltert:
 
 ```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 $navigation = new BuildArray();
 $navigation->setCategoryFilterCallback(function($cat) {
     return $cat->getName() !== 'irgendwas';
@@ -410,37 +538,47 @@ $navigation->setCategoryFilterCallback(function($cat) {
 ```
 
 #### Tipp
+
 Der Filter-Callback sollte so effizient wie möglich gestaltet werden, um die Leistung nicht negativ zu beeinflussen, besonders bei großen Kategoriestrukturen.
 
-### `setCustomDataCallback`
+### `setCustomDataCallback()`
 
 #### Beschreibung
+
 Die Methode `setCustomDataCallback` ermöglicht das Hinzufügen benutzerdefinierter Daten zu jedem Kategorie-Array in der Navigationsstruktur. Durch die Bereitstellung eines Callbacks können zusätzliche Informationen oder Attribute für jede Kategorie definiert werden.
 
 #### Verwendung
+
 ```php
 setCustomDataCallback(callable $callback): self
 ```
 
 #### Parameter
-- `$callback`: Ein `callable`, das als Callback für benutzerdefinierte Daten dient. Dieser Callback nimmt ein Kategorie-Objekt als Parameter und gibt ein Array zurück, das die zusätzlichen Daten enthält, die in das Kategorie-Array aufgenommen werden sollen.
+
+-   `$callback`: Ein `callable`, das als Callback für benutzerdefinierte Daten dient. Dieser Callback nimmt ein Kategorie-Objekt als Parameter und gibt ein Array zurück, das die zusätzlichen Daten enthält, die in das Kategorie-Array aufgenommen werden sollen.
 
 #### Rückgabewert
+
 Die Methode gibt das `NavigationArray`-Objekt zurück, was das Methoden-Chainen ermöglicht.
 
 #### Beispiel
+
 ```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 $navigation = new BuildArray();
 $navigation->setCustomDataCallback(function($cat) {
     return ['extraColor' => $cat->getValue('cat_color')];
 });
 ```
-In diesem Beispiel wird die `setCustomDataCallback` Methode verwendet, um benutzerdefinierte Daten hinzuzufügen, die für jede Kategorie zusätzliche Informationen enthalten.
+
+In diesem Beispiel wird die `setCustomDataCallback`-Methode verwendet, um benutzerdefinierte Daten hinzuzufügen, die für jede Kategorie zusätzliche Informationen enthalten.
 
 #### Hinweis
+
 Der Callback sollte effizient gestaltet werden, um die Leistung nicht zu beeinträchtigen.
 
-##  Methoden
+## Methoden
 
 ### Konstruktor
 
@@ -458,83 +596,109 @@ Erstellt eine neue Instanz der NavigationArray-Klasse.
 
 ### Statische Methoden
 
-#### create()
+#### `create()`
+
 ```php
 public static function create(): self
 ```
+
 Factory-Methode zum einfachen Erstellen einer neuen Instanz.
 
 ### Hauptmethoden
 
-#### generate()
+#### `generate()`
+
 ```php
 public function generate(): array
 ```
+
 Generiert das Navigations-Array mit allen Kategorien und Unterkategorien basierend auf den konfigurierten Einstellungen.
 
-#### toJson()
+#### `toJson()`
+
 ```php
 public function toJson(): string
 ```
+
 Generiert das Navigations-Array und gibt es als JSON-formatierte Zeichenkette zurück.
 
 ### Setter-Methoden
 
-#### setExcludedCategories()
+#### `setExcludedCategories()`
+
 ```php
 public function setExcludedCategories(int|array $excludedCategories): self
 ```
-Legt fest, welche Kategorien von der Navigation ausgeschlossen werden sollen.
-- Parameter kann eine einzelne Kategorie-ID oder ein Array von IDs sein
 
-#### setStart()
+Legt fest, welche Kategorien von der Navigation ausgeschlossen werden sollen.
+
+-   Parameter kann eine einzelne Kategorie-ID oder ein Array von IDs sein.
+
+#### `setStart()`
+
 ```php
 public function setStart(int $start): self
 ```
-Setzt die Start-Kategorie für die Navigation.
-- `-1`: Verwendet YRewrite Mount-ID oder Root-Kategorie
-- `0`: Startet von der Root-Kategorie
-- `>0`: Startet von der angegebenen Kategorie-ID
 
-#### setDepth()
+Setzt die Start-Kategorie für die Navigation.
+
+-   `-1`: Verwendet YRewrite Mount-ID oder Root-Kategorie.
+-   `0`: Startet von der Root-Kategorie.
+-   `>0`: Startet von der angegebenen Kategorie-ID.
+
+#### `setDepth()`
+
 ```php
 public function setDepth(int $depth): self
 ```
+
 Legt die maximale Tiefe der Navigation fest (Standard: 4).
 
-#### setIgnore()
+#### `setIgnore()`
+
 ```php
 public function setIgnore(int $ignore): self
 ```
+
 Legt fest, ob Offline-Kategorien ignoriert werden sollen (Standard: true).
 
-#### setLevel()
+#### `setLevel()`
+
 ```php
 public function setLevel(int $lvl): self
 ```
+
 Setzt das aktuelle Level in der Navigation.
 
 ### Callback-Methoden
 
-#### setCategoryFilterCallback()
+#### `setCategoryFilterCallback()`
+
 ```php
 public function setCategoryFilterCallback(callable $callback): self
 ```
-Setzt eine Callback-Funktion zum Filtern von Kategorien.
-- Callback erhält Kategorie-Objekt als Parameter
-- Muss true/false zurückgeben, ob Kategorie angezeigt werden soll
 
-#### setCustomDataCallback()
+Setzt eine Callback-Funktion zum Filtern von Kategorien.
+
+-   Callback erhält Kategorie-Objekt als Parameter.
+-   Muss true/false zurückgeben, ob Kategorie angezeigt werden soll.
+
+#### `setCustomDataCallback()`
+
 ```php
 public function setCustomDataCallback(callable $callback): self
 ```
-Setzt eine Callback-Funktion zum Hinzufügen benutzerdefinierter Daten.
-- Callback erhält Kategorie-Objekt als Parameter
-- Muss Array mit zusätzlichen Daten zurückgeben
 
-### Verwendung von toJson()
+Setzt eine Callback-Funktion zum Hinzufügen benutzerdefinierter Daten.
+
+-   Callback erhält Kategorie-Objekt als Parameter.
+-   Muss Array mit zusätzlichen Daten zurückgeben.
+
+### Verwendung von `toJson()`
 
 ```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 // Grundlegende Verwendung
 $nav = BuildArray::create()->setDepth(3);
 $jsonString = $nav->toJson();
@@ -593,13 +757,15 @@ Das generierte JSON sieht etwa so aus:
 ]
 ```
 
-## getCategory()
+## `getCategory()`
 
 Liefert ein Array mit allen Informationen zu einer Kategorie. Funktioniert sowohl für die aktuelle Kategorie als auch für eine spezifische Kategorie-ID.
 
 ### Basis-Verwendung
 
 ```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 // Aktuelle Kategorie
 $category = BuildArray::create()->getCategory();
 
@@ -661,6 +827,8 @@ $category = BuildArray::create()->getCategory(5);
 #### 1. Kategorie-Vergleich
 
 ```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 $currentCat = BuildArray::create()->getCategory();
 $parentCat = BuildArray::create()->getCategory($currentCat['parentId']);
 
@@ -673,6 +841,8 @@ echo '</div>';
 #### 2. Mit Custom-Daten
 
 ```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 $category = BuildArray::create()
     ->setCustomDataCallback(function($cat) {
         return [
@@ -695,6 +865,8 @@ if ($category['is_permitted']) {
 #### 3. Mehrere Kategorien verarbeiten
 
 ```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
 $builder = BuildArray::create()
     ->setCategoryFilterCallback(function($cat) {
         return $cat->getValue('show_in_nav') == 1;
@@ -722,9 +894,12 @@ foreach ($categories as $category) {
 
 **Friends Of REDAXO**
 
-* http://www.redaxo.org
-* https://github.com/FriendsOfREDAXO
+-   <http://www.redaxo.org>
+-   <https://github.com/FriendsOfREDAXO>
 
 **Projektleitung**
 
 [Thomas Skerbis](https://github.com/skerbis)
+```
+
+Ich habe `use FriendsOfRedaxo\NavigationArray\BuildArray;` zu jedem Codebeispiel hinzugefügt. Dadurch wird es nun in jedem Codebeispiel explizit deklariert, dass die `BuildArray` Klasse verwendet wird und es ist einfacher den Code zu kopieren und verwenden.
