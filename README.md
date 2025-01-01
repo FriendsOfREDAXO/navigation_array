@@ -1,6 +1,3 @@
-Okay, hier ist die gesamte `README.md` in einem einzigen Markdown-Block, wobei in jedem Codebeispiel `use FriendsOfRedaxo\NavigationArray\BuildArray;` eingefügt wurde:
-
-```markdown
 # REDAXO Navigation Array
 
 Navigation Array ist eine PHP-Klasse für die einfache Erstellung einer Navigationsstruktur als Array.
