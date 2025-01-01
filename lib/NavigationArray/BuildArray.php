@@ -362,4 +362,58 @@ class BuildArray
 
         return $categoryArray;
     }
+    
+        /**
+     * Walk through the navigation and apply a callback to each item.
+     *
+     * @param callable $callback The callback function to apply to each item.
+     *                            It will receive the item (category array) and the level as arguments.
+     * @return void
+     */
+    public function walk(callable $callback): void
+    {
+        $this->initializeStartCategory();
+        
+        $currentCat = rex_category::getCurrent();
+        $currentCatpath = $currentCat ? $currentCat->getPathAsArray() : [];
+        $currentCat_id = $currentCat ? $currentCat->getId() : 0;
+    
+        foreach ($this->startCats as $cat) {
+           if ($this->isPermitted($cat)) {
+               $this->walkRecursive($cat, $callback, $currentCatpath, $currentCat_id, 0);
+           }
+        }
+    }
+
+    /**
+     * Recursive helper function for the walk method.
+     *
+     * @param rex_category $cat
+     * @param callable $callback
+     * @param array $currentCatpath
+     * @param int $currentCat_id
+     * @param int $level
+     * @return void
+     */
+    private function walkRecursive(rex_category $cat, callable $callback, array $currentCatpath, int $currentCat_id, int $level): void
+    {
+       $item =  $this->processCategory($cat, $currentCatpath, $currentCat_id);
+       if(!empty($item)){
+           call_user_func($callback, $item, $level);
+       }
+
+
+        if ($level <= $this->depth) {
+           
+            $childCats = $cat->getChildren($this->ignoreOfflines);
+            
+            if(!empty($childCats)){
+             foreach ($childCats as $child) {
+                    if($this->isPermitted($child)){
+                        $this->walkRecursive($child, $callback, $currentCatpath, $currentCat_id, $level + 1);
+                    }
+              }
+            }
+        }
+    }
 }
