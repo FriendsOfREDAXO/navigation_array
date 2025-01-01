@@ -901,5 +901,3 @@ foreach ($categories as $category) {
 
 [Thomas Skerbis](https://github.com/skerbis)
 ```
-
-Ich habe `use FriendsOfRedaxo\NavigationArray\BuildArray;` zu jedem Codebeispiel hinzugefügt. Dadurch wird es nun in jedem Codebeispiel explizit deklariert, dass die `BuildArray` Klasse verwendet wird und es ist einfacher den Code zu kopieren und verwenden.
