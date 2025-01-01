@@ -179,6 +179,7 @@ $navigation->walk(function ($item, $level) {
 ```
 
 #### Beispiel: Einfache Navigation mit `walk()` und REDAXO Fragment
+
 Hier ein Beispiel, wie du die `walk()`-Methode in Verbindung mit einem REDAXO-Fragment für eine einfache Navigation verwenden kannst.
 
 **1. Fragment (`simple_navigation.php`)**:
@@ -264,27 +265,40 @@ echo '</ul>';
 
 Dieses Beispiel zeigt, wie du die `walk()` Methode nutzen kannst um einen Breadcrumb zu generieren, und dabei von den bereitgestellten Informationen Gebrauch machst.
 
-### Der klassische Weg (Eigene Iteration)
+### Vergleich: `walk()` vs. Eigene Iteration (Gleiche Ausgabe)
 
-Die traditionelle Methode zur Erstellung einer Navigation verwendet eine eigene rekursive Funktion, um das Array zu durchlaufen.
+Um die Vorteile der `walk()`-Methode zu verdeutlichen, zeigen wir hier, wie man die gleiche verschachtelte Navigation mit beiden Methoden erstellt. Dies ermöglicht einen direkten Code-Vergleich.
 
-#### Beispiel: Verschachtelte HTML-Liste mit eigener Iteration
+#### Mit `walk()`-Methode
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+$navigation = BuildArray::create()->setDepth(3);
+$htmlOutput = '';
+
+$navigation->walk(function($item, $level) use (&$htmlOutput) {
+   $htmlOutput .= str_repeat("&nbsp;&nbsp;", $level) . '<a href="' . $item['url'] . '">' . $item['catName'] . '</a><br>';
+});
+
+echo $htmlOutput;
+```
+
+#### Mit eigener Iterationsfunktion
 
 ```php
 <?php
 use FriendsOfRedaxo\NavigationArray\BuildArray;
 
 function myCustomNavigation($items, $level = 0) {
-    $output = '<ul>';
+    $output = '';
     foreach ($items as $item) {
-        $output .= '<li>';
-        $output .= '<a href="' . $item['url'] . '">' . $item['catName'] . '</a>';
+        $output .= str_repeat("&nbsp;&nbsp;", $level) . '<a href="' . $item['url'] . '">' . $item['catName'] . '</a><br>';
         if ($item['hasChildren']) {
             $output .= myCustomNavigation($item['children'], $level + 1);
         }
-        $output .= '</li>';
     }
-    $output .= '</ul>';
     return $output;
 }
 
@@ -292,17 +306,14 @@ $navigation = BuildArray::create()->setDepth(3)->generate();
 echo myCustomNavigation($navigation);
 ```
 
-### Vergleich
+**Analyse:**
 
-| Feature              | `walk()`-Methode                        | Eigene Iteration                |
-|----------------------|-----------------------------------------|---------------------------------|
-| **Code-Komplexität**  | Geringer, klarer, kapselt die Rekursion | Höher, mehr Code               |
-| **Lesbarkeit**       | Besser                                 | Schlechter                     |
-| **Wartbarkeit**      | Einfacher                                | Komplexer                      |
-| **Flexibilität**     | Hoch, mit Callback                     | Eingeschränkt, weniger flexibel |
-| **Logik**            | Zentral implementiert                   | Wiederholte Rekursionslogik     |
+*   **Klarheit:** Beide Code-Beispiele erzeugen *exakt* die gleiche HTML-Ausgabe.
+*   **Code-Kürze:** Die `walk()`-Methode erfordert *deutlich weniger* Code und ist lesbarer, da die Rekursionslogik intern gehandhabt wird.
+*   **Wartbarkeit:** Der Code mit `walk()` ist einfacher zu warten, da die Rekursionslogik gekapselt ist.
+*   **Flexibilität:** Die `walk()`-Methode ermöglicht es, die Logik der Ausgabe in einem Callback zu definieren, was die Flexibilität erhöht.
 
-Die `walk()`-Methode bietet eine sauberere und effizientere Lösung zur Traversierung der Navigationsdaten, während der klassische Weg mehr Code erfordert und weniger wartbar ist.
+Dieser direkte Vergleich zeigt, dass die `walk()`-Methode eine prägnantere, klarere und wartungsfreundlichere Möglichkeit bietet, die Navigationsdaten zu verarbeiten.
 
 ## Weitere Beispiele
 
@@ -859,4 +870,3 @@ Das generierte JSON sieht etwa so aus:
 **Projektleitung**
 
 [Thomas Skerbis](https://github.com/skerbis)
-```
