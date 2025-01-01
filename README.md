@@ -111,8 +111,8 @@ public function walk(callable $callback): void
 #### Parameter
 
 -   `$callback`: Eine `callable`-Funktion, die für jedes Navigationselement aufgerufen wird. Die Funktion erhält zwei Parameter:
-    -   `$item`: Das aktuelle Navigationselement (als Array).
-    -   `$level`: Die aktuelle Ebene der Navigation (als Integer).
+    -   `$item`: Das aktuelle Navigationselement (als `array`).
+    -   `$level`: Die aktuelle Ebene der Navigation (als `int`).
 
 #### Beispiel: Verschachtelte HTML-Liste mit `walk()`
 
@@ -685,6 +685,12 @@ public function __construct(
 
 Erstellt eine neue Instanz der NavigationArray-Klasse.
 
+*   `$start` (`int`, optional): Die ID der Startkategorie. Verwenden Sie `-1` für die YRewrite Mount-ID oder die Root-Kategorie. Standard: `-1`.
+*   `$depth` (`int`, optional): Die maximale Tiefe der Navigation. Standard: `4`.
+*   `$ignoreOfflines` (`bool`, optional): Gibt an, ob Offline-Kategorien ignoriert werden sollen. Standard: `true`.
+*   `$depthSaved` (`int`, optional): Gespeicherte Tiefe, wird intern verwendet. Standard: `0`.
+*   `$level` (`int`, optional): Aktuelles Level, wird intern verwendet. Standard: `0`.
+
 ### Statische Methoden
 
 #### `create()`
@@ -694,6 +700,8 @@ public static function create(): self
 ```
 
 Factory-Methode zum einfachen Erstellen einer neuen Instanz.
+
+*   Rückgabewert: Eine neue Instanz von `BuildArray` (`self`).
 
 ### Hauptmethoden
 
@@ -705,6 +713,8 @@ public function generate(): array
 
 Generiert das Navigations-Array mit allen Kategorien und Unterkategorien basierend auf den konfigurierten Einstellungen.
 
+*   Rückgabewert: Das generierte Navigations-Array (`array`).
+
 #### `toJson()`
 
 ```php
@@ -712,6 +722,8 @@ public function toJson(): string
 ```
 
 Generiert das Navigations-Array und gibt es als JSON-formatierte Zeichenkette zurück.
+
+*   Rückgabewert: Das generierte Navigations-Array als JSON-String (`string`).
 
 ### Setter-Methoden
 
@@ -723,19 +735,19 @@ public function setExcludedCategories(int|array $excludedCategories): self
 
 Legt fest, welche Kategorien von der Navigation ausgeschlossen werden sollen.
 
--   Parameter kann eine einzelne Kategorie-ID oder ein Array von IDs sein.
+*   `$excludedCategories` (`int` oder `array` von `int`): Eine einzelne Kategorie-ID oder ein Array von Kategorie-IDs.
+*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
 
 #### `setStart()`
 
 ```php
-public function setStart(int $start): self
+public function setStart(int|array $start): self
 ```
 
-Setzt die Start-Kategorie für die Navigation.
+Setzt die Start-Kategorie(n) für die Navigation.
 
--   `-1`: Verwendet YRewrite Mount-ID oder Root-Kategorie.
--   `0`: Startet von der Root-Kategorie.
--   `>0`: Startet von der angegebenen Kategorie-ID.
+*   `$start` (`int` oder `array` von `int`): Die ID der Startkategorie oder ein Array von Kategorie-IDs. Verwenden Sie `-1` für die YRewrite Mount-ID oder die Root-Kategorie, `0` für die Root-Kategorie oder eine positive Zahl für eine spezifische Kategorie-ID.
+*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
 
 #### `setDepth()`
 
@@ -743,7 +755,10 @@ Setzt die Start-Kategorie für die Navigation.
 public function setDepth(int $depth): self
 ```
 
-Legt die maximale Tiefe der Navigation fest (Standard: 4).
+Legt die maximale Tiefe der Navigation fest.
+
+*   `$depth` (`int`): Die maximale Tiefe der Navigation.
+*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
 
 #### `setIgnore()`
 
@@ -751,7 +766,10 @@ Legt die maximale Tiefe der Navigation fest (Standard: 4).
 public function setIgnore(int $ignore): self
 ```
 
-Legt fest, ob Offline-Kategorien ignoriert werden sollen (Standard: true).
+Legt fest, ob Offline-Kategorien ignoriert werden sollen.
+
+*   `$ignore` (`int`): `true` (1) oder `false` (0) um Offline-Kategorien zu ignorieren.
+*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
 
 #### `setLevel()`
 
@@ -760,6 +778,9 @@ public function setLevel(int $lvl): self
 ```
 
 Setzt das aktuelle Level in der Navigation.
+
+*   `$lvl` (`int`): Das aktuelle Level der Navigation.
+*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
 
 ### Callback-Methoden
 
@@ -771,8 +792,8 @@ public function setCategoryFilterCallback(callable $callback): self
 
 Setzt eine Callback-Funktion zum Filtern von Kategorien.
 
--   Callback erhält Kategorie-Objekt als Parameter.
--   Muss true/false zurückgeben, ob Kategorie angezeigt werden soll.
+*   `$callback` (`callable`): Eine Funktion, die ein `rex_category` Objekt als Parameter erhält und `true` (für die Aufnahme der Kategorie) oder `false` (für deren Ausschluss) zurückgibt.
+*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
 
 #### `setCustomDataCallback()`
 
@@ -782,8 +803,8 @@ public function setCustomDataCallback(callable $callback): self
 
 Setzt eine Callback-Funktion zum Hinzufügen benutzerdefinierter Daten.
 
--   Callback erhält Kategorie-Objekt als Parameter.
--   Muss Array mit zusätzlichen Daten zurückgeben.
+*   `$callback` (`callable`): Eine Funktion, die ein `rex_category` Objekt als Parameter erhält und ein `array` mit zusätzlichen Daten zurückgibt.
+*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
 
 ### Verwendung von `toJson()`
 
@@ -858,4 +879,4 @@ Das generierte JSON sieht etwa so aus:
 **Projektleitung**
 
 [Thomas Skerbis](https://github.com/skerbis)
-```
+
