@@ -9,7 +9,7 @@ Navigation Array ist eine PHP-Klasse für die einfache Erstellung einer Navigati
 -   Tiefe kann festgelegt werden.
 -   Kategorien filtern und manipulieren (z.B. mit Meta-Infos) über Callbacks.
 -   Mitgelieferte Fragmente für die HTML-Ausgabe der Navigation.
--   `walk`-Methode für einfache, rekursive Navigationstraversierung.
+-   NEU: `walk`-Methode für einfache, rekursive Navigationstraversierung.
 -   `getCategory`-Methode zum Abrufen von Kategorieinformationen (inkl. Kindkategorien).
 
 ## Array-Struktur
@@ -499,6 +499,55 @@ $navigation->walk(function ($item, $level) {
 });
 ```
 
+### Vergleich: `walk`-Methode vs. Eigene Iteration
+
+Um die Vorteile der `walk`-Methode zu verdeutlichen, hier ein Beispiel, das dieselbe Aufgabe (Ausgabe einer verschachtelten Liste von Kategorienamen) einmal mit der `walk`-Methode und einmal mit einer eigenen Iterationsfunktion realisiert:
+
+#### Mit `walk`-Methode
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+$navigation = BuildArray::create()->setDepth(3);
+$htmlOutput = '';
+
+$navigation->walk(function($item, $level) use (&$htmlOutput) {
+    $htmlOutput .= str_repeat("&nbsp;&nbsp;", $level) . $item['catName'] . "<br>";
+});
+
+echo $htmlOutput;
+```
+
+#### Mit eigener Iterationsfunktion
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+function myCustomNavigation($items, $level = 0) {
+    $output = '';
+    foreach ($items as $item) {
+        $output .= str_repeat("&nbsp;&nbsp;", $level) . $item['catName'] . "<br>";
+        if ($item['hasChildren']) {
+            $output .= myCustomNavigation($item['children'], $level + 1);
+        }
+    }
+    return $output;
+}
+
+$navigation = BuildArray::create()->setDepth(3)->generate();
+echo myCustomNavigation($navigation);
+```
+
+**Analyse:**
+
+*   Die `walk`-Methode erfordert weniger Code, ist klarer und kapselt die Rekursionslogik.
+*   Die eigene Iterationsfunktion ist komplexer, benötigt mehr Zeilen Code und wiederholt die Rekursionslogik, die bereits in `walk` implementiert ist.
+*   Die `walk`-Methode bietet eine höhere Konsistenz und Flexibilität.
+
+Dieses Beispiel verdeutlicht, warum die `walk`-Methode die empfohlene Vorgehensweise für das Durchlaufen der Navigationsdaten ist.
+
 ## Callback-Filter
 
 ### `setCategoryFilterCallback()`
@@ -897,4 +946,3 @@ foreach ($categories as $category) {
 **Projektleitung**
 
 [Thomas Skerbis](https://github.com/skerbis)
-```
