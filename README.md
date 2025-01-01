@@ -234,6 +234,36 @@ echo $fragment->parse('navigation_array/simple_navigation.php');
 
 Dieses Beispiel zeigt, wie du mit der `walk()`-Methode ein Array der Navigation erzeugen kannst und dieses dann mit einem REDAXO-Fragment in eine einfache Navigation umwandeln kannst. Die Rekursion wird nun über die Fragments realisiert, um einen wiederverwendbaren Code zu erhalten.
 
+#### Beispiel: Breadcrumb mit `walk()`
+
+Hier ist ein modernes Breadcrumb-Beispiel mit der `walk()`-Methode:
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+$navarray = BuildArray::create()->setDepth(10);
+$breadcrumbItems = [];
+
+$navarray->walk(function ($item, $level) use (&$breadcrumbItems) {
+    if ($item['active']) {
+      $liclass = '';
+        if ('REX_ARTICLE_ID' == $item['catId']) {
+            $liclass = ' class="disabled"';
+            $item['url'] = '';
+         }
+        $breadcrumbItems[] = '<li'.$liclass.'><a href="' . $item['url'] . '">' . $item['catName'] . '</a></li>';
+    }
+});
+echo '<ul class="breadcrumb">';
+echo '<li><a title="Home" href="/"><span data-uk-icon="home"></span></a></li>';
+echo implode("\n", $breadcrumbItems);
+echo '</ul>';
+
+```
+
+Dieses Beispiel zeigt, wie du die `walk()` Methode nutzen kannst um einen Breadcrumb zu generieren, und dabei von den bereitgestellten Informationen Gebrauch machst.
+
 ### Der klassische Weg (Eigene Iteration)
 
 Die traditionelle Methode zur Erstellung einer Navigation verwendet eine eigene rekursive Funktion, um das Array zu durchlaufen.
@@ -486,57 +516,7 @@ $navigation = '
 <!--- ENDE NAVI-BAR --->
 ```
 
-#### Beispiel: Breadcrumb
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-// UIkit Breadcrumb uses navigation_array
-function bc_uikit($data = array())
-{   $liclass = '';
-    $output = [];
-    foreach ($data as $cat) {
-        if ($cat['active'] == false)    
-        {
-            continue;
-        }  
-        $subnavi = '';
-        if ($cat['hasChildren'] == true) {
-            $sub = [];
-            $sub[] = bc_uikit($cat['children']);
-            $subnavi = join("\n", $sub);
-        }       
-        $catname = $cat['catName'];
-        if ('REX_ARTICLE_ID' == $cat['catId']) {
-            $liclass = ' class="uk-disabled"';
-            $cat['url']='';
-        }
-        $catname = '<a href="'.$cat['url'].'">'.$catname.'</a>';     
-        if ($cat['active'] == true)       
-        {
-	         $output[] = '<li'.$liclass.'>' . $catname .'</li>'.$subnavi;
-
-        }
-    }
-    if(count($output)>0)
-    {    
-    return join("\n", $output);
-    }    
-}
-
-
-$navarray = BuildArray::create()->setDepth(10)->generate();
-
-echo '
-    <ul class="uk-breadcrumb">
-    <li><a title="Home" href="/"><span data-uk-icon="home"></span></a></li>'
-    .bc_uikit($navarray).
-    '</ul>
-';
-?>
-```
-
-## `getCategory()`
+### `getCategory()`
 
 Liefert ein Array mit allen Informationen zu einer Kategorie. Funktioniert sowohl für die aktuelle Kategorie als auch für eine spezifische Kategorie-ID.
 
@@ -879,4 +859,4 @@ Das generierte JSON sieht etwa so aus:
 **Projektleitung**
 
 [Thomas Skerbis](https://github.com/skerbis)
-
+```
