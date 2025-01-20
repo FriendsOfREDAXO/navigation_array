@@ -224,7 +224,7 @@ class BuildArray
      * @param rex_category $cat
      * @return bool
      */
-    private function isPermitted(rex_category $cat): bool 
+    private function isPermitted(rex_category $cat): bool
     {
         // Prüfe YCom Berechtigungen
         if (!$this->isCategoryPermitted($cat)) {
@@ -252,36 +252,39 @@ class BuildArray
      */
     private function processCategory(rex_category $cat, array $currentCatpath, int $currentCat_id): array
     {
-        if ($this->level > $this->depth) {
-            return [];
-        }
-
         $catId = $cat->getId();
 
-        //check subcategories and exclude if depth is reached
-        $children = [];
-        if ($this->level <= $this->depth && $cat->getChildren($this->ignoreOfflines)) {
-            $childCats = $cat->getChildren($this->ignoreOfflines);
-            foreach ($childCats as $child) {
-                if ($this->isPermitted($child)) {
-                    $children[] = $this->processCategory($child, $currentCatpath, $currentCat_id);
-                }
-            }
-        }
-
+        // Base category data
         $categoryArray = [
             'catId' => $catId,
             'parentId' => $cat->getParentId(),
             'level' => $this->level,
             'catName' => $cat->getName(),
             'url' => $cat->getUrl(),
-            'hasChildren' => !empty($children),
-            'children' => $children,
             'path' => $cat->getPathAsArray(),
             'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
             'current' => $currentCat_id == $catId,
         ];
 
+        // Process children only if we haven't reached the maximum depth
+        $children = [];
+        if ($this->level < $this->depth) {
+            $childCats = $cat->getChildren($this->ignoreOfflines);
+            if ($childCats) {
+                $this->level++; // Increment level for children
+                foreach ($childCats as $child) {
+                    if ($this->isPermitted($child)) {
+                        $children[] = $this->processCategory($child, $currentCatpath, $currentCat_id);
+                    }
+                }
+                $this->level--; // Restore level after processing children
+            }
+        }
+
+        $categoryArray['hasChildren'] = !empty($children);
+        $categoryArray['children'] = $children;
+
+        // Add custom data if callback is set
         if (is_callable($this->customDataCallback)) {
             $customData = call_user_func($this->customDataCallback, $cat);
             if (is_array($customData)) {
@@ -365,8 +368,8 @@ class BuildArray
 
         return $categoryArray;
     }
-    
-        /**
+
+    /**
      * Walk through the navigation and apply a callback to each item.
      *
      * @param callable $callback The callback function to apply to each item.
@@ -376,15 +379,16 @@ class BuildArray
     public function walk(callable $callback): void
     {
         $this->initializeStartCategory();
-        
+
         $currentCat = rex_category::getCurrent();
         $currentCatpath = $currentCat ? $currentCat->getPathAsArray() : [];
         $currentCat_id = $currentCat ? $currentCat->getId() : 0;
-    
+
         foreach ($this->startCats as $cat) {
-           if ($this->isPermitted($cat)) {
-               $this->walkRecursive($cat, $callback, $currentCatpath, $currentCat_id, 0);
-           }
+            if ($this->isPermitted($cat)) {
+                // Start mit Level 0 für die Root-Kategorien
+                $this->walkRecursive($cat, $callback, $currentCatpath, $currentCat_id, 0);
+            }
         }
     }
 
@@ -400,22 +404,25 @@ class BuildArray
      */
     private function walkRecursive(rex_category $cat, callable $callback, array $currentCatpath, int $currentCat_id, int $level): void
     {
-       $item =  $this->processCategory($cat, $currentCatpath, $currentCat_id);
-       if(!empty($item)){
-           call_user_func($callback, $item, $level);
-       }
+        // Prüfe zuerst, ob wir die maximale Tiefe überschritten haben
+        if ($level > $this->depth) {
+            return;
+        }
 
+        $item = $this->processCategory($cat, $currentCatpath, $currentCat_id);
+        if (!empty($item)) {
+            call_user_func($callback, $item, $level);
+        }
 
-        if ($level <= $this->depth) {
-           
+        // Hole Kindkategorien nur wenn wir noch nicht die maximale Tiefe erreicht haben
+        if ($level < $this->depth) {
             $childCats = $cat->getChildren($this->ignoreOfflines);
-            
-            if(!empty($childCats)){
-             foreach ($childCats as $child) {
-                    if($this->isPermitted($child)){
+            if (!empty($childCats)) {
+                foreach ($childCats as $child) {
+                    if ($this->isPermitted($child)) {
                         $this->walkRecursive($child, $callback, $currentCatpath, $currentCat_id, $level + 1);
                     }
-              }
+                }
             }
         }
     }

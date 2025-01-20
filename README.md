@@ -122,44 +122,64 @@ use FriendsOfRedaxo\NavigationArray\BuildArray;
 
 $htmlNavigation = '';
 $currentLevel = 0;
+$lastItem = null;
 
 $navigation = BuildArray::create()
     ->setDepth(3)
     ->setExcludedCategories([32,34])
     ->setCategoryFilterCallback(function(rex_category $cat){
-        // Hier kannst du deine eigenen Filter setzen
         return true;
     })
     ->setCustomDataCallback(function(rex_category $cat){
-      return [
-        'css_id' => 'cat-'.$cat->getId(),
-        'description' => $cat->getValue('description')
-      ];
-  });
+        return [
+            'css_id' => 'cat-'.$cat->getId(),
+            'description' => $cat->getValue('description')
+        ];
+    });
 
-$navigation->walk(function ($item, $level) use (&$htmlNavigation, &$currentLevel) {
-    
-    // Level check um unnötige Tags zu vermeiden
-    if($level > $currentLevel) {
-       $htmlNavigation .= '<ul>';
-    }
-    if($level < $currentLevel){
-         $diff = $currentLevel - $level;
-         $htmlNavigation .= str_repeat('</ul>', $diff);
-     }
-     $currentLevel = $level;
-   
-    $activeClass = $item['active'] ? ' class="active"' : '';
-
-    $htmlNavigation .= '<li'.$activeClass.'>';
-    $htmlNavigation .= '<a href="' . $item['url'] . '" id="'.$item['css_id'].'">';
-    $htmlNavigation .=  $item['catName'] ;
-    $htmlNavigation .= '</a>';
-    $htmlNavigation .= '</li>';
+$items = []; // Sammle alle Items
+$navigation->walk(function ($item, $level) use (&$items) {
+    $items[] = ['item' => $item, 'level' => $level];
 });
-// Abschließen der Tags wenn auf der höchsten Ebene
-if($currentLevel > 0){
- $htmlNavigation .= str_repeat('</ul>', $currentLevel);
+
+// Verarbeite die Items
+for ($i = 0; $i < count($items); $i++) {
+    $currentItem = $items[$i];
+    $level = $currentItem['level'];
+    $item = $currentItem['item'];
+    
+    // Prüfe auf Leveländerungen
+    if ($level > $currentLevel) {
+        $htmlNavigation .= "\n" . str_repeat('  ', $level) . '<ul>';
+    } elseif ($level < $currentLevel) {
+        // Schließe übergeordnete Level
+        $diff = $currentLevel - $level;
+        for ($j = 0; $j < $diff; $j++) {
+            $htmlNavigation .= '</li>' . "\n" . str_repeat('  ', $currentLevel - $j - 1) . '</ul>';
+            if ($j < $diff - 1) {
+                $htmlNavigation .= '</li>';
+            }
+        }
+    } elseif ($i > 0) {
+        // Auf gleichem Level: Schließe vorheriges li
+        $htmlNavigation .= '</li>';
+    }
+    
+    $htmlNavigation .= "\n" . str_repeat('  ', $level);
+    $activeClass = $item['active'] ? ' class="active"' : '';
+    $htmlNavigation .= '<li' . $activeClass . '>';
+    $htmlNavigation .= '<a href="' . $item['url'] . '" id="' . $item['css_id'] . '">';
+    $htmlNavigation .= $item['catName'];
+    $htmlNavigation .= '</a>';
+    
+    $currentLevel = $level;
+}
+
+// Schließe verbleibende offene Tags
+if ($currentLevel >= 0) {
+    for ($i = $currentLevel; $i >= 0; $i--) {
+        $htmlNavigation .= '</li>' . "\n" . str_repeat('  ', $i) . '</ul>';
+    }
 }
 
 echo $htmlNavigation;
