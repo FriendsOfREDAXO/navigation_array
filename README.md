@@ -127,39 +127,43 @@ $navigation = BuildArray::create()
     ->setDepth(3)
     ->setExcludedCategories([32,34])
     ->setCategoryFilterCallback(function(rex_category $cat){
-        // Hier kannst du deine eigenen Filter setzen
         return true;
     })
     ->setCustomDataCallback(function(rex_category $cat){
-      return [
-        'css_id' => 'cat-'.$cat->getId(),
-        'description' => $cat->getValue('description')
-      ];
-  });
+        return [
+            'css_id' => 'cat-'.$cat->getId(),
+            'description' => $cat->getValue('description')
+        ];
+    });
 
 $navigation->walk(function ($item, $level) use (&$htmlNavigation, &$currentLevel) {
-    
     // Level check um unnötige Tags zu vermeiden
     if($level > $currentLevel) {
-       $htmlNavigation .= '<ul>';
+        // Öffne neue UL VOR dem LI des Parents
+        $htmlNavigation .= '<ul>';
     }
     if($level < $currentLevel){
-         $diff = $currentLevel - $level;
-         $htmlNavigation .= str_repeat('</ul>', $diff);
-     }
-     $currentLevel = $level;
+        // Schließe LI des vorherigen Levels und dann die ULs
+        $diff = $currentLevel - $level;
+        $htmlNavigation .= str_repeat('</li></ul>', $diff);
+    } else if($level == $currentLevel && $level > 0) {
+        // Schließe vorheriges LI auf gleichem Level
+        $htmlNavigation .= '</li>';
+    }
+    $currentLevel = $level;
    
     $activeClass = $item['active'] ? ' class="active"' : '';
-
     $htmlNavigation .= '<li'.$activeClass.'>';
     $htmlNavigation .= '<a href="' . $item['url'] . '" id="'.$item['css_id'].'">';
-    $htmlNavigation .=  $item['catName'] ;
+    $htmlNavigation .= $item['catName'];
     $htmlNavigation .= '</a>';
-    $htmlNavigation .= '</li>';
+    
+    // Kein schließendes </li> hier!
 });
-// Abschließen der Tags wenn auf der höchsten Ebene
+
+// Abschließen der Tags
 if($currentLevel > 0){
- $htmlNavigation .= str_repeat('</ul>', $currentLevel);
+    $htmlNavigation .= str_repeat('</li></ul>', $currentLevel);
 }
 
 echo $htmlNavigation;
