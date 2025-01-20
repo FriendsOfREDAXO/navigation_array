@@ -250,47 +250,50 @@ class BuildArray
      * @param int $currentCat_id
      * @return array
      */
-    private function processCategory(rex_category $cat, array $currentCatpath, int $currentCat_id): array
-    {
-        if ($this->level > $this->depth) {
-            return [];
-        }
+   private function processCategory(rex_category $cat, array $currentCatpath, int $currentCat_id): array
+   {
+    $catId = $cat->getId();
+    
+    // Base category data
+    $categoryArray = [
+        'catId' => $catId,
+        'parentId' => $cat->getParentId(),
+        'level' => $this->level,
+        'catName' => $cat->getName(),
+        'url' => $cat->getUrl(),
+        'path' => $cat->getPathAsArray(),
+        'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
+        'current' => $currentCat_id == $catId,
+    ];
 
-        $catId = $cat->getId();
-
-        //check subcategories and exclude if depth is reached
-        $children = [];
-        if ($this->level <= $this->depth && $cat->getChildren($this->ignoreOfflines)) {
-            $childCats = $cat->getChildren($this->ignoreOfflines);
+    // Process children only if we haven't reached the maximum depth
+    $children = [];
+    if ($this->level < $this->depth) {
+        $childCats = $cat->getChildren($this->ignoreOfflines);
+        if ($childCats) {
+            $this->level++; // Increment level for children
             foreach ($childCats as $child) {
                 if ($this->isPermitted($child)) {
                     $children[] = $this->processCategory($child, $currentCatpath, $currentCat_id);
                 }
             }
+            $this->level--; // Restore level after processing children
         }
-
-        $categoryArray = [
-            'catId' => $catId,
-            'parentId' => $cat->getParentId(),
-            'level' => $this->level,
-            'catName' => $cat->getName(),
-            'url' => $cat->getUrl(),
-            'hasChildren' => !empty($children),
-            'children' => $children,
-            'path' => $cat->getPathAsArray(),
-            'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
-            'current' => $currentCat_id == $catId,
-        ];
-
-        if (is_callable($this->customDataCallback)) {
-            $customData = call_user_func($this->customDataCallback, $cat);
-            if (is_array($customData)) {
-                $categoryArray = array_merge($categoryArray, $customData);
-            }
-        }
-
-        return $categoryArray;
     }
+
+    $categoryArray['hasChildren'] = !empty($children);
+    $categoryArray['children'] = $children;
+
+    // Add custom data if callback is set
+    if (is_callable($this->customDataCallback)) {
+        $customData = call_user_func($this->customDataCallback, $cat);
+        if (is_array($customData)) {
+            $categoryArray = array_merge($categoryArray, $customData);
+        }
+    }
+
+    return $categoryArray;
+   }
 
     /**
      * Get category information either for current category or by ID
