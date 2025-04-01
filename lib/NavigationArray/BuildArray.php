@@ -87,7 +87,7 @@ class BuildArray
      * @param bool $ignore
      * @return $this
      */
-    public function setIgnore(int $ignore): self
+    public function setIgnore(bool $ignore): self
     {
         $this->ignoreOfflines = $ignore;
         return $this;
