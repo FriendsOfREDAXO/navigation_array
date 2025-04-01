@@ -175,16 +175,21 @@ class BuildArray
      */
     private function initializeStartCategory(): void
     {
-        // Fallback if no mountpoint is available
-        $domain = rex_yrewrite::getDomainByArticleId(rex_article::getCurrentId(), rex_clang::getCurrentId());
-        $this->start = ($domain !== null) ? $domain->getMountId() : 0;
-        // get yrewrite mount id if available
-        if (is_int($this->start) && $this->start == -1 && rex_addon::get('yrewrite')->isAvailable()) {
-            $this->start = rex_yrewrite::getDomainByArticleId(rex_article::getCurrentId(), rex_clang::getCurrentId())->getMountId();
-        } elseif ($this->start == -1) {
-            $this->start = 0;
+        // Nutze den bereits gesetzten Startwert, falls dieser nicht -1 ist
+        if ($this->start == -1) {
+            // Nur wenn start -1 ist, versuche yrewrite Mount-ID zu holen
+            if (rex_addon::get('yrewrite')->isAvailable()) {
+                $domain = rex_yrewrite::getDomainByArticleId(rex_article::getCurrentId(), rex_clang::getCurrentId());
+                if ($domain !== null) {
+                    $this->start = $domain->getMountId();
+                } else {
+                    $this->start = 0;
+                }
+            } else {
+                $this->start = 0;
+            }
         }
-
+        
         if (is_array($this->start)) {
             $this->startCats = [];
             foreach ($this->start as $startCatId) {
