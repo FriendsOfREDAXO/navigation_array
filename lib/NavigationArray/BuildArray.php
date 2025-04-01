@@ -84,12 +84,12 @@ class BuildArray
     /**
      * Set whether offline categories should be ignored (default: true).
      *
-     * @param bool $ignore
+     * @param int $ignore 1 for true, 0 for false
      * @return $this
      */
-    public function setIgnore(bool $ignore): self
+    public function setIgnore(int $ignore): self
     {
-        $this->ignoreOfflines = $ignore;
+        $this->ignoreOfflines = (bool)$ignore;
         return $this;
     }
 
@@ -218,6 +218,12 @@ class BuildArray
      */
     private function isCategoryPermitted(rex_category $cat): bool
     {
+        // Erst prüfen, ob das ycom-Addon überhaupt installiert und aktiviert ist
+        if (!rex_addon::get('ycom')->isAvailable()) {
+            return true;
+        }
+        
+        // Dann prüfen, ob das auth-Plugin verfügbar ist
         $ycom_check = rex_addon::get('ycom')->getPlugin('auth')->isAvailable();
         return !$ycom_check || $cat->isPermitted();
     }
