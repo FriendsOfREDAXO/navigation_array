@@ -171,25 +171,27 @@ class BuildArray
     }
 
     /**
+     * Initialize the start category based on the provided start value
+     * or fallback to yrewrite domain or root categories
+     * 
      * @return void
      */
     private function initializeStartCategory(): void
     {
-        // Nutze den bereits gesetzten Startwert, falls dieser nicht -1 ist
+        // Erster Schritt: Startwert ermitteln, falls es -1 (Default) ist
         if ($this->start == -1) {
-            // Nur wenn start -1 ist, versuche yrewrite Mount-ID zu holen
+            // YRewrite Domain-Startpunkt versuchen zu holen
             if (rex_addon::get('yrewrite')->isAvailable()) {
                 $domain = rex_yrewrite::getDomainByArticleId(rex_article::getCurrentId(), rex_clang::getCurrentId());
-                if ($domain !== null) {
-                    $this->start = $domain->getMountId();
-                } else {
-                    $this->start = 0;
-                }
+                $this->start = ($domain !== null) ? $domain->getMountId() : 0;
             } else {
+                // Fallback auf Root-Kategorien
                 $this->start = 0;
             }
         }
         
+        // Zweiter Schritt: Kategorien basierend auf dem ermittelten Startwert laden
+        // Arrays von Kategorie-IDs
         if (is_array($this->start)) {
             $this->startCats = [];
             foreach ($this->start as $startCatId) {
@@ -198,16 +200,20 @@ class BuildArray
                     $this->startCats[] = $startCat;
                 }
             }
-        } elseif ($this->start != 0) {
+            return;
+        }
+        
+        // Spezifische Kategorie-ID (nicht 0)
+        if ($this->start != 0) {
             $startCat = rex_category::get($this->start);
             if ($startCat) {
                 $this->startCats = $startCat->getChildren($this->ignoreOfflines);
-            } else {
-                $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
+                return;
             }
-        } else {
-            $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
         }
+        
+        // Fallback auf Root-Kategorien
+        $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
     }
 
     /**
