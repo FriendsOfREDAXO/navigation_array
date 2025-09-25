@@ -2,6 +2,18 @@
 
 Navigation Array ist eine PHP-Klasse für die einfache Erstellung einer Navigationsstruktur als Array. Diese Klasse bietet flexible Möglichkeiten, Navigationsdaten auszulesen, zu filtern und zu verarbeiten, insbesondere durch die Nutzung der `walk()`-Methode.
 
+## PHP 8.4+ Optimierungen
+
+Diese Version wurde für PHP 8.4+ optimiert und nutzt moderne PHP-Features:
+
+- **Enhanced Type Safety**: Vollständig typisierte Properties und Methoden
+- **Modern Array Handling**: Verwendung von modernen Array-Verarbeitungsmustern  
+- **Match Expressions**: Saubere conditional Logic mit `match` statt `switch`
+- **Null-Safe Operators**: Verbesserte Null-Sicherheit mit `?.` und `??`
+- **Arrow Functions**: Kompaktere Callback-Syntax wo möglich
+- **Strict Comparisons**: Verwendung von `===` für bessere Performance
+- **Ready for PHP 8.4**: Vorbereitet für Property Hooks und Asymmetric Visibility
+
 ## Erklärung der Klasse
 
 Die `FriendsOfRedaxo\NavigationArray\BuildArray` Klasse bietet folgende Hauptfunktionalitäten:

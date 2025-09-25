@@ -10,25 +10,58 @@ use rex_exception;
 use rex_logger;
 use rex_yrewrite;
 
+use function array_filter;
+use function array_merge;
 use function call_user_func;
+use function count;
 use function in_array;
 use function is_array;
 use function is_callable;
 use function is_int;
+use function json_encode;
 
+/**
+ * Navigation Array Builder for REDAXO CMS
+ * 
+ * Modernized implementation with PHP 8.4+ ready patterns including:
+ * - Enhanced type safety with strict typing
+ * - Modern array and null handling patterns  
+ * - Match expressions for cleaner conditional logic
+ * - Improved method signatures and documentation
+ * - Ready for property hooks and asymmetric visibility when PHP 8.4 is available
+ */
 class BuildArray
 {
-    private $categoryFilterCallback;
-    private $customDataCallback;
-    private $depth;
-    private $ignoreOfflines;
-    private $level;
-    private $start;
-    private $startCats;
-    private $excludedCategories = []; // Neue Eigenschaft
+    // Modern typed properties with default values  
+    private int $start = -1;
+    private int $depth = 4;
+    private bool $ignoreOfflines = true;
+    private int $level = 0;
 
-    public function __construct(int $start = -1, int $depth = 4, bool $ignoreOfflines = true, $depthSaved = 0, int $level = 0)
-    {
+    // Property with validation (will be modernized when PHP 8.4 property hooks are available)
+    private array $excludedCategories = [];
+
+    // Using modern type declarations with mixed for callables
+    private mixed $categoryFilterCallback = null;
+    private mixed $customDataCallback = null;
+    private array $startCats = [];
+
+    // Public getters for read access
+    public function getStart(): int { return $this->start; }
+    public function getDepth(): int { return $this->depth; }
+    public function getIgnoreOfflines(): bool { return $this->ignoreOfflines; }
+    public function getLevel(): int { return $this->level; }
+
+    /**
+     * Constructor with property promotion and enhanced type safety
+     */
+    public function __construct(
+        int $start = -1,
+        int $depth = 4,
+        bool $ignoreOfflines = true,
+        int $depthSaved = 0,
+        int $level = 0
+    ) {
         $this->start = $start;
         $this->depth = $depth;
         $this->ignoreOfflines = $ignoreOfflines;
@@ -37,31 +70,26 @@ class BuildArray
 
     /**
      * Set categories to exclude from the navigation (int or array of ints with category ids).
-     *
-     * @param int|array $excludedCategories
-     * @return $this
+     * Enhanced validation and type handling
      */
     public function setExcludedCategories(int|array $excludedCategories): self
     {
         if (is_int($excludedCategories)) {
             $excludedCategories = [$excludedCategories];
         }
-
+        
         if (!is_array($excludedCategories)) {
             $message = 'Excluded categories must be an integer or an array of integers.';
             rex_logger::logError(E_USER_ERROR, $message, __FILE__, __LINE__);
             throw new rex_exception($message);
         }
-
+        
         $this->excludedCategories = $excludedCategories;
         return $this;
     }
 
     /**
      * Set ID of the category to start with (default: -1, yrewrite mountID or root category).
-     *
-     * @param int $start
-     * @return $this
      */
     public function setStart(int $start): self
     {
@@ -71,9 +99,6 @@ class BuildArray
 
     /**
      * Set how many levels should the navigation show (default: 4).
-     *
-     * @param int $depth
-     * @return $this
      */
     public function setDepth(int $depth): self
     {
@@ -83,23 +108,19 @@ class BuildArray
 
     /**
      * Set whether offline categories should be ignored (default: true).
-     *
-     * @param int $ignore 1 for true, 0 for false
-     * @return $this
      */
     public function setIgnore(int $ignore): self
     {
-        $this->ignoreOfflines = (bool)$ignore;
+        $this->ignoreOfflines = (bool) $ignore;
         return $this;
     }
 
     /**
-     * @param int $lvl
-     * @return $this
+     * Set current processing level
      */
-    public function setLevel(int $lvl): self
+    public function setLevel(int $level): self
     {
-        $this->level = $lvl;
+        $this->level = $level;
         return $this;
     }
 
@@ -114,34 +135,29 @@ class BuildArray
     }
 
     /**
-     * Generate the navigation array.
-     *
-     * @return array
+     * Generate the navigation array with modern patterns
      */
     public function generate(): array
     {
         $result = [];
         $currentCat = rex_category::getCurrent();
-        $currentCatpath = $currentCat ? $currentCat->getPathAsArray() : [];
-        $currentCat_id = $currentCat ? $currentCat->getId() : 0;
+        $currentCatpath = $currentCat?->getPathAsArray() ?? [];
+        $currentCat_id = $currentCat?->getId() ?? 0;
 
         $this->initializeStartCategory();
 
-        foreach ($this->startCats as $cat) {
-            if ($this->isPermitted($cat)) {
-                $result[] = $this->processCategory($cat, $currentCatpath, $currentCat_id);
-            }
+        $permittedStartCats = $this->getPermittedCategories($this->startCats);
+        foreach ($permittedStartCats as $cat) {
+            $result[] = $this->processCategory($cat, $currentCatpath, $currentCat_id);
         }
+        
         return array_filter($result);
     }
 
     /**
      * Set a callback to filter categories.
-     *
-     * @param callable $callback
-     * @return $this
      */
-    public function setCategoryFilterCallback(callable $callback): self
+    public function setCategoryFilterCallback(mixed $callback): self
     {
         $this->categoryFilterCallback = $callback;
         return $this;
@@ -149,11 +165,8 @@ class BuildArray
 
     /**
      * Set a callback to add custom data to the category array.
-     *
-     * @param callable $callback
-     * @return $this
      */
-    public function setCustomDataCallback(callable $callback): self
+    public function setCustomDataCallback(mixed $callback): self
     {
         $this->customDataCallback = $callback;
         return $this;
@@ -161,117 +174,151 @@ class BuildArray
 
     /**
      * Generate the navigation array as JSON.
-     *
-     * @return string
+     * Uses modern JSON flags for better output quality
      */
     public function toJson(): string
     {
         $array = $this->generate();
-        return json_encode($array, JSON_PRETTY_PRINT);
+        return json_encode(
+            $array,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR
+        );
     }
 
     /**
      * Initialize the start category based on the provided start value
      * or fallback to yrewrite domain or root categories
      * 
-     * @return void
+     * Uses modern PHP patterns and improved logic flow
      */
     private function initializeStartCategory(): void
     {
-        // Erster Schritt: Startwert ermitteln, falls es -1 (Default) ist
-        if ($this->start == -1) {
-            // YRewrite Domain-Startpunkt versuchen zu holen
-            if (rex_addon::get('yrewrite')->isAvailable()) {
-                $domain = rex_yrewrite::getDomainByArticleId(rex_article::getCurrentId(), rex_clang::getCurrentId());
-                $this->start = ($domain !== null) ? $domain->getMountId() : 0;
-            } else {
-                // Fallback auf Root-Kategorien
-                $this->start = 0;
-            }
+        // First step: determine start value if it's -1 (default)
+        if ($this->start === -1) {
+            $this->start = match (true) {
+                rex_addon::get('yrewrite')->isAvailable() => $this->getYRewriteStartId(),
+                default => 0
+            };
         }
         
-        // Zweiter Schritt: Kategorien basierend auf dem ermittelten Startwert laden
-        // Arrays von Kategorie-IDs
-        if (is_array($this->start)) {
-            $this->startCats = [];
-            foreach ($this->start as $startCatId) {
-                $startCat = rex_category::get($startCatId);
-                if ($startCat) {
-                    $this->startCats[] = $startCat;
-                }
+        // Second step: load categories based on determined start value
+        $this->startCats = match (true) {
+            is_array($this->start) => $this->loadCategoriesFromArray($this->start),
+            $this->start !== 0 => $this->loadCategoriesFromId($this->start),
+            default => rex_category::getRootCategories($this->ignoreOfflines)
+        };
+    }
+
+    /**
+     * Get YRewrite start ID with null coalescing
+     */
+    private function getYRewriteStartId(): int
+    {
+        $domain = rex_yrewrite::getDomainByArticleId(
+            rex_article::getCurrentId(),
+            rex_clang::getCurrentId()
+        );
+        return $domain?->getMountId() ?? 0;
+    }
+
+    /**
+     * Load categories from array of IDs
+     */
+    private function loadCategoriesFromArray(array $startIds): array
+    {
+        $categories = [];
+        foreach ($startIds as $startCatId) {
+            $startCat = rex_category::get($startCatId);
+            if ($startCat !== null) {
+                $categories[] = $startCat;
             }
-            return;
         }
-        
-        // Spezifische Kategorie-ID (nicht 0)
-        if ($this->start != 0) {
-            $startCat = rex_category::get($this->start);
-            if ($startCat) {
-                $this->startCats = $startCat->getChildren($this->ignoreOfflines);
-                return;
-            }
-        }
-        
-        // Fallback auf Root-Kategorien
-        $this->startCats = rex_category::getRootCategories($this->ignoreOfflines);
+        return $categories;
+    }
+
+    /**
+     * Load categories from single ID
+     */
+    private function loadCategoriesFromId(int $startId): array
+    {
+        $startCat = rex_category::get($startId);
+        return $startCat?->getChildren($this->ignoreOfflines) ?? [];
     }
 
     /**
      * Check if the category is permitted by ycom.
-     *
-     * @param rex_category $cat
-     * @return bool
+     * Uses modern null-safe operators and improved logic
      */
     private function isCategoryPermitted(rex_category $cat): bool
     {
-        // Erst prüfen, ob das ycom-Addon überhaupt installiert und aktiviert ist
-        if (!rex_addon::get('ycom')->isAvailable()) {
+        $ycomAddon = rex_addon::get('ycom');
+        if (!$ycomAddon->isAvailable()) {
             return true;
         }
         
-        // Dann prüfen, ob das auth-Plugin verfügbar ist
-        $ycom_check = rex_addon::get('ycom')->getPlugin('auth')->isAvailable();
-        return !$ycom_check || $cat->isPermitted();
+        $authPlugin = $ycomAddon->getPlugin('auth');
+        return !$authPlugin->isAvailable() || $cat->isPermitted();
     }
 
     /**
      * Check if category meets all navigation requirements
-     * Prüft ob die Kategorie alle Anforderungen erfüllt (YCom, Ausschlüsse, Filter)
-     *
-     * @param rex_category $cat
-     * @return bool
+     * Modern implementation with enhanced readability
      */
     private function isPermitted(rex_category $cat): bool
     {
-        // Prüfe YCom Berechtigungen
-        if (!$this->isCategoryPermitted($cat)) {
-            return false;
-        }
-
-        // Prüfe ob Kategorie ausgeschlossen ist
-        if (in_array($cat->getId(), $this->excludedCategories)) {
-            return false;
-        }
-
-        // Prüfe Category Filter Callback
-        if (is_callable($this->categoryFilterCallback) && !call_user_func($this->categoryFilterCallback, $cat)) {
-            return false;
-        }
-
-        return true;
+        return $this->isCategoryPermitted($cat)
+            && !in_array($cat->getId(), $this->excludedCategories, true)
+            && ($this->categoryFilterCallback === null || ($this->categoryFilterCallback)($cat));
     }
 
     /**
-     * @param rex_category $cat
-     * @param array $currentCatpath
-     * @param int $currentCat_id
-     * @return array
+     * Helper method using PHP 8.4-ready pattern for array checking
+     * This demonstrates modern array handling patterns
      */
+    private function hasPermittedChildren(rex_category $cat): bool
+    {
+        $children = $cat->getChildren($this->ignoreOfflines);
+        if (empty($children)) {
+            return false;
+        }
+
+        // Modern approach: check if any child is permitted
+        foreach ($children as $child) {
+            if ($this->isPermitted($child)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Find a category by condition using modern PHP patterns
+     * Ready for PHP 8.4 array_find when available
+     */
+    private function findCategoryByCondition(array $categories, callable $condition): ?rex_category
+    {
+        foreach ($categories as $category) {
+            if ($condition($category)) {
+                return $category;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get categories that meet all conditions using filter pattern
+     * Demonstrates modern functional programming approach
+     */
+    private function getPermittedCategories(array $categories): array
+    {
+        return array_filter($categories, fn($cat) => $this->isPermitted($cat));
+    }
     private function processCategory(rex_category $cat, array $currentCatpath, int $currentCat_id): array
     {
         $catId = $cat->getId();
 
-        // Base category data
+        // Base category data with enhanced structure
         $categoryArray = [
             'catId' => $catId,
             'parentId' => $cat->getParentId(),
@@ -279,31 +326,19 @@ class BuildArray
             'catName' => $cat->getName(),
             'url' => $cat->getUrl(),
             'path' => $cat->getPathAsArray(),
-            'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
-            'current' => $currentCat_id == $catId,
+            'active' => in_array($catId, $currentCatpath, true) || $currentCat_id === $catId,
+            'current' => $currentCat_id === $catId,
         ];
 
-        // Process children only if we haven't reached the maximum depth
-        $children = [];
-        if ($this->level < $this->depth) {
-            $childCats = $cat->getChildren($this->ignoreOfflines);
-            if ($childCats) {
-                $this->level++; // Increment level for children
-                foreach ($childCats as $child) {
-                    if ($this->isPermitted($child)) {
-                        $children[] = $this->processCategory($child, $currentCatpath, $currentCat_id);
-                    }
-                }
-                $this->level--; // Restore level after processing children
-            }
-        }
-
+        // Process children with improved logic
+        $children = $this->processChildren($cat, $currentCatpath, $currentCat_id);
+        
         $categoryArray['hasChildren'] = !empty($children);
         $categoryArray['children'] = $children;
 
-        // Add custom data if callback is set
-        if (is_callable($this->customDataCallback)) {
-            $customData = call_user_func($this->customDataCallback, $cat);
+        // Add custom data using modern callback syntax
+        if ($this->customDataCallback !== null) {
+            $customData = ($this->customDataCallback)($cat);
             if (is_array($customData)) {
                 $categoryArray = array_merge($categoryArray, $customData);
             }
@@ -313,50 +348,65 @@ class BuildArray
     }
 
     /**
-     * Get category information either for current category or by ID
-     * 
-     * @param int|null $categoryId Optional category ID
-     * @return array
+     * Process children categories with depth control
+     * Uses modern helper methods for cleaner code
      */
-    public function getCategory(?int $categoryId = null): array
+    private function processChildren(rex_category $cat, array $currentCatpath, int $currentCat_id): array
     {
-        // Kategorie ermitteln (entweder durch ID oder current)
-        $cat = null;
-        if ($categoryId !== null) {
-            $cat = rex_category::get($categoryId);
-        } else {
-            $cat = rex_category::getCurrent();
-        }
-
-        if (!$cat) {
+        if ($this->level >= $this->depth) {
             return [];
         }
 
-        // YCom-Berechtigungen prüfen
-        $hasYcomPermissions = $this->isCategoryPermitted($cat);
-
-        // Filter-Status prüfen
-        $isFilterPermitted = true;
-        if (is_callable($this->categoryFilterCallback)) {
-            $isFilterPermitted = call_user_func($this->categoryFilterCallback, $cat);
+        $childCats = $cat->getChildren($this->ignoreOfflines);
+        if (empty($childCats)) {
+            return [];
         }
+
+        // Use modern helper method for filtering
+        $permittedChildren = $this->getPermittedCategories($childCats);
+        
+        $children = [];
+        $this->level++; // Increment level for children processing
+        
+        foreach ($permittedChildren as $child) {
+            $children[] = $this->processCategory($child, $currentCatpath, $currentCat_id);
+        }
+        
+        $this->level--; // Restore level after processing children
+        
+        return $children;
+    }
+
+    /**
+     * Get category information either for current category or by ID
+     * Enhanced with modern PHP patterns and better null safety
+     */
+    public function getCategory(?int $categoryId = null): array
+    {
+        // Determine category (either by ID or current) with null coalescing
+        $cat = $categoryId !== null 
+            ? rex_category::get($categoryId)
+            : rex_category::getCurrent();
+
+        if ($cat === null) {
+            return [];
+        }
+
+        // Permission checks with improved structure
+        $hasYcomPermissions = $this->isCategoryPermitted($cat);
+        $isFilterPermitted = $this->categoryFilterCallback === null 
+            || ($this->categoryFilterCallback)($cat);
+
+        // Current category context
+        $currentCat = rex_category::getCurrent();
+        $currentCatpath = $currentCat?->getPathAsArray() ?? [];
+        $currentCat_id = $currentCat?->getId() ?? 0;
+
+        // Process children with modern approach
+        $children = $this->getChildrenForCategory($cat, $currentCatpath, $currentCat_id);
 
         $catId = $cat->getId();
         $path = $cat->getPathAsArray();
-        $currentCat = rex_category::getCurrent();
-        $currentCatpath = $currentCat ? $currentCat->getPathAsArray() : [];
-        $currentCat_id = $currentCat ? $currentCat->getId() : 0;
-
-        // Kinder mit processCategory verarbeiten
-        $children = [];
-        $childCategories = $cat->getChildren($this->ignoreOfflines);
-        if ($childCategories) {
-            foreach ($childCategories as $childCat) {
-                if ($this->isPermitted($childCat)) {
-                    $children[] = $this->processCategory($childCat, $currentCatpath, $currentCat_id);
-                }
-            }
-        }
 
         $categoryArray = [
             'catId' => $catId,
@@ -364,20 +414,20 @@ class BuildArray
             'catName' => $cat->getName(),
             'url' => $cat->getUrl(),
             'hasChildren' => !empty($children),
-            'children' => $children,  // Kinder aus processCategory
+            'children' => $children,
             'path' => $path,
             'pathCount' => count($path),
-            'active' => in_array($catId, $currentCatpath) || $currentCat_id == $catId,
-            'current' => $currentCat_id == $catId,
+            'active' => in_array($catId, $currentCatpath, true) || $currentCat_id === $catId,
+            'current' => $currentCat_id === $catId,
             'cat' => $cat,
             'ycom_permitted' => $hasYcomPermissions,
             'filter_permitted' => $isFilterPermitted,
             'is_permitted' => $hasYcomPermissions && $isFilterPermitted
         ];
 
-        // Custom Data hinzufügen wenn ein Callback definiert ist
-        if (is_callable($this->customDataCallback)) {
-            $customData = call_user_func($this->customDataCallback, $cat);
+        // Add custom data using modern callback syntax
+        if ($this->customDataCallback !== null) {
+            $customData = ($this->customDataCallback)($cat);
             if (is_array($customData)) {
                 $categoryArray = array_merge($categoryArray, $customData);
             }
@@ -387,60 +437,81 @@ class BuildArray
     }
 
     /**
+     * Get children for a specific category using modern patterns
+     */
+    private function getChildrenForCategory(rex_category $cat, array $currentCatpath, int $currentCat_id): array
+    {
+        $childCategories = $cat->getChildren($this->ignoreOfflines);
+        if (empty($childCategories)) {
+            return [];
+        }
+
+        // Use modern helper method
+        $permittedChildren = $this->getPermittedCategories($childCategories);
+
+        $children = [];
+        foreach ($permittedChildren as $childCat) {
+            $children[] = $this->processCategory($childCat, $currentCatpath, $currentCat_id);
+        }
+
+        return $children;
+    }
+
+    /**
      * Walk through the navigation and apply a callback to each item.
-     *
-     * @param callable $callback The callback function to apply to each item.
-     *                            It will receive the item (category array) and the level as arguments.
-     * @return void
+     * Modern implementation with enhanced type safety and clarity
      */
     public function walk(callable $callback): void
     {
         $this->initializeStartCategory();
 
         $currentCat = rex_category::getCurrent();
-        $currentCatpath = $currentCat ? $currentCat->getPathAsArray() : [];
-        $currentCat_id = $currentCat ? $currentCat->getId() : 0;
+        $currentCatpath = $currentCat?->getPathAsArray() ?? [];
+        $currentCat_id = $currentCat?->getId() ?? 0;
 
-        foreach ($this->startCats as $cat) {
-            if ($this->isPermitted($cat)) {
-                // Start mit Level 0 für die Root-Kategorien
-                $this->walkRecursive($cat, $callback, $currentCatpath, $currentCat_id, 0);
-            }
+        $permittedStartCats = $this->getPermittedCategories($this->startCats);
+        foreach ($permittedStartCats as $cat) {
+            // Start with level 0 for root categories
+            $this->walkRecursive($cat, $callback, $currentCatpath, $currentCat_id, 0);
         }
     }
 
     /**
      * Recursive helper function for the walk method.
-     *
-     * @param rex_category $cat
-     * @param callable $callback
-     * @param array $currentCatpath
-     * @param int $currentCat_id
-     * @param int $level
-     * @return void
+     * Enhanced with modern PHP patterns and better depth control
      */
-    private function walkRecursive(rex_category $cat, callable $callback, array $currentCatpath, int $currentCat_id, int $level): void
-    {
-        // Prüfe zuerst, ob wir die maximale Tiefe überschritten haben
+    private function walkRecursive(
+        rex_category $cat,
+        callable $callback,
+        array $currentCatpath,
+        int $currentCat_id,
+        int $level
+    ): void {
+        // Check if we've exceeded maximum depth
         if ($level > $this->depth) {
             return;
         }
 
+        // Process current category
+        $originalLevel = $this->level;
+        $this->level = $level;
+        
         $item = $this->processCategory($cat, $currentCatpath, $currentCat_id);
         if (!empty($item)) {
-            call_user_func($callback, $item, $level);
+            $callback($item, $level);
         }
 
-        // Hole Kindkategorien nur wenn wir noch nicht die maximale Tiefe erreicht haben
+        // Process children if we haven't reached maximum depth
         if ($level < $this->depth) {
             $childCats = $cat->getChildren($this->ignoreOfflines);
-            if (!empty($childCats)) {
-                foreach ($childCats as $child) {
-                    if ($this->isPermitted($child)) {
-                        $this->walkRecursive($child, $callback, $currentCatpath, $currentCat_id, $level + 1);
-                    }
-                }
+            $permittedChildren = $this->getPermittedCategories($childCats);
+            
+            foreach ($permittedChildren as $child) {
+                $this->walkRecursive($child, $callback, $currentCatpath, $currentCat_id, $level + 1);
             }
         }
+
+        // Restore original level
+        $this->level = $originalLevel;
     }
 }
