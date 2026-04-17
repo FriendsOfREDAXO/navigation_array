@@ -6,8 +6,8 @@ use rex_addon;
 use rex_article;
 use rex_category;
 use rex_clang;
-use rex_exception;
-use rex_logger;
+use rex_extension;
+use rex_extension_point;
 use rex_yrewrite;
 
 use function call_user_func;
@@ -18,16 +18,28 @@ use function is_int;
 
 class BuildArray
 {
+    /** @var callable|null */
     private $categoryFilterCallback;
-    private $customDataCallback;
-    private $depth;
-    private $ignoreOfflines;
-    private $level;
-    private $start;
-    private $startCats;
-    private $excludedCategories = []; // Neue Eigenschaft
 
-    public function __construct(int $start = -1, int $depth = 4, bool $ignoreOfflines = true, $depthSaved = 0, int $level = 0)
+    /** @var callable|null */
+    private $customDataCallback;
+
+    private int $depth;
+    private bool $ignoreOfflines;
+    private int $level;
+
+    /** @var int|array<int> */
+    private int|array $start;
+
+    /** @var list<rex_category> */
+    private array $startCats = [];
+
+    /** @var array<int> */
+    private array $excludedCategories = [];
+
+    private bool $includeArticles = false;
+
+    public function __construct(int $start = -1, int $depth = 4, bool $ignoreOfflines = true, int $level = 0)
     {
         $this->start = $start;
         $this->depth = $depth;
@@ -38,7 +50,7 @@ class BuildArray
     /**
      * Set categories to exclude from the navigation (int or array of ints with category ids).
      *
-     * @param int|array $excludedCategories
+     * @param int|array<int> $excludedCategories
      * @return $this
      */
     public function setExcludedCategories(int|array $excludedCategories): self
@@ -47,25 +59,30 @@ class BuildArray
             $excludedCategories = [$excludedCategories];
         }
 
-        if (!is_array($excludedCategories)) {
-            $message = 'Excluded categories must be an integer or an array of integers.';
-            rex_logger::logError(E_USER_ERROR, $message, __FILE__, __LINE__);
-            throw new rex_exception($message);
-        }
-
-        $this->excludedCategories = $excludedCategories;
+        $this->excludedCategories = array_values($excludedCategories);
         return $this;
     }
 
     /**
-     * Set ID of the category to start with (default: -1, yrewrite mountID or root category).
+     * Set the start category ID or an array of category IDs (default: -1, yrewrite mountID or root).
      *
-     * @param int $start
+     * @param int|array<int> $start
      * @return $this
      */
-    public function setStart(int $start): self
+    public function setStart(int|array $start): self
     {
         $this->start = $start;
+        return $this;
+    }
+
+    /**
+     * Include articles (non-start) of each category in the result under the key 'articles'.
+     *
+     * @return $this
+     */
+    public function setIncludeArticles(bool $include = true): self
+    {
+        $this->includeArticles = $include;
         return $this;
     }
 
@@ -116,7 +133,7 @@ class BuildArray
     /**
      * Generate the navigation array.
      *
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     public function generate(): array
     {
@@ -167,7 +184,7 @@ class BuildArray
     public function toJson(): string
     {
         $array = $this->generate();
-        return json_encode($array, JSON_PRETTY_PRINT);
+        return (string) json_encode($array, JSON_PRETTY_PRINT);
     }
 
     /**
@@ -263,9 +280,9 @@ class BuildArray
 
     /**
      * @param rex_category $cat
-     * @param array $currentCatpath
+     * @param array<int> $currentCatpath
      * @param int $currentCat_id
-     * @return array
+     * @return array<string, mixed>
      */
     private function processCategory(rex_category $cat, array $currentCatpath, int $currentCat_id): array
     {
@@ -301,6 +318,31 @@ class BuildArray
         $categoryArray['hasChildren'] = !empty($children);
         $categoryArray['children'] = $children;
 
+        // Artikel einbeziehen wenn aktiviert (Start-Artikel ausgenommen)
+        if ($this->includeArticles) {
+            $articles = [];
+            $currentArticleId = rex_article::getCurrentId();
+            foreach ($cat->getArticles($this->ignoreOfflines) as $article) {
+                if ($article->isStartArticle()) {
+                    continue;
+                }
+                $articles[] = [
+                    'catId' => null,
+                    'articleId' => $article->getId(),
+                    'parentId' => $article->getCategoryId(),
+                    'level' => $this->level + 1,
+                    'catName' => $article->getName(),
+                    'url' => $article->getUrl(),
+                    'path' => $article->getPathAsArray(),
+                    'active' => $article->getId() === $currentArticleId,
+                    'current' => $article->getId() === $currentArticleId,
+                    'hasChildren' => false,
+                    'children' => [],
+                ];
+            }
+            $categoryArray['articles'] = $articles;
+        }
+
         // Add custom data if callback is set
         if (is_callable($this->customDataCallback)) {
             $customData = call_user_func($this->customDataCallback, $cat);
@@ -309,14 +351,22 @@ class BuildArray
             }
         }
 
+        // Extension Point: andere AddOns können Item-Daten ergänzen/anpassen
+        /** @var array<string, mixed> $categoryArray */
+        $categoryArray = rex_extension::registerPoint(new rex_extension_point(
+            'NAVIGATION_ARRAY_GENERATE_ITEM',
+            $categoryArray,
+            ['cat' => $cat, 'level' => $this->level]
+        ));
+
         return $categoryArray;
     }
 
     /**
      * Get category information either for current category or by ID
-     * 
+     *
      * @param int|null $categoryId Optional category ID
-     * @return array
+     * @return array<string, mixed>
      */
     public function getCategory(?int $categoryId = null): array
     {
@@ -410,11 +460,101 @@ class BuildArray
     }
 
     /**
+     * Returns the breadcrumb path from the root down to the current or given category.
+     *
+     * Additional items – e.g. a detail-page title from the URL addon or a YForm dataset –
+     * can be appended via $append:
+     *
+     * ```php
+     * $nav->getBreadcrumb(append: [['name' => 'Detail', 'url' => rex_getUrl(42)]]);
+     * ```
+     *
+     * @param int|null $categoryId  Target category (null = current)
+     * @param array<array<string, string>> $append  Extra items appended at the end
+     * @return array<int, array<string, mixed>>
+     */
+    public function getBreadcrumb(?int $categoryId = null, array $append = []): array
+    {
+        $cat = $categoryId !== null ? rex_category::get($categoryId) : rex_category::getCurrent();
+
+        $path = [];
+
+        if ($cat !== null) {
+            $current = $cat;
+            $visited = [];
+            while ($current !== null) {
+                if (in_array($current->getId(), $visited, true)) {
+                    break;
+                }
+                $visited[] = $current->getId();
+                array_unshift($path, [
+                    'catId' => $current->getId(),
+                    'catName' => $current->getName(),
+                    'url' => $current->getUrl(),
+                    'current' => false,
+                ]);
+                $parentId = $current->getParentId();
+                $current = $parentId > 0 ? rex_category::get($parentId) : null;
+            }
+        }
+
+        foreach ($append as $item) {
+            $path[] = [
+                'catId' => null,
+                'catName' => $item['name'] ?? '',
+                'url' => $item['url'] ?? '',
+                'current' => false,
+            ];
+        }
+
+        if ($path !== []) {
+            $path[array_key_last($path)]['current'] = true;
+        }
+
+        return $path;
+    }
+
+    /**
+     * Returns a Schema.org BreadcrumbList as a JSON-LD <script> tag.
+     *
+     * Accepts the same parameters as getBreadcrumb() – including $append for
+     * custom last-path items (article title, detail pages, etc.).
+     *
+     * @param int|null $categoryId  Target category (null = current)
+     * @param array<array<string, string>> $append  Extra items appended at the end
+     * @return string
+     */
+    public function toJsonLd(?int $categoryId = null, array $append = []): string
+    {
+        $breadcrumb = $this->getBreadcrumb($categoryId, $append);
+
+        $items = [];
+        foreach ($breadcrumb as $position => $item) {
+            $items[] = [
+                '@type' => 'ListItem',
+                'position' => $position + 1,
+                'name' => $item['catName'],
+                'item' => $item['url'],
+            ];
+        }
+
+        $jsonLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => $items,
+        ];
+
+        return '<script type="application/ld+json">'
+            . (string) json_encode($jsonLd, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            . '</script>';
+    }
+
+    /**
      * Recursive helper function for the walk method.
      *
      * @param rex_category $cat
      * @param callable $callback
-     * @param array $currentCatpath
+     * @param array<int> $currentCatpath
      * @param int $currentCat_id
      * @param int $level
      * @return void

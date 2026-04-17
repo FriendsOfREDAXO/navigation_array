@@ -11,18 +11,26 @@ Die `FriendsOfRedaxo\NavigationArray\BuildArray` Klasse bietet folgende Hauptfun
 *   **Hinzufügen benutzerdefinierter Daten:** Fügt zusätzliche Informationen zu jedem Kategorie-Array hinzu.
 *   **Rekursive Navigationstraversierung:** Die `walk()`-Methode erlaubt es, die Navigationsstruktur rekursiv zu durchlaufen und dabei individuelle Operationen auszuführen.
 *   **Abrufen von Kategorieinformationen:** Mit der `getCategory()`-Methode können detaillierte Informationen zu einzelnen Kategorien abgerufen werden.
+*   **Breadcrumb-Generierung:** `getBreadcrumb()` liefert den Pfad von Root bis zur aktuellen Kategorie – erweiterbar mit eigenen Einträgen (z. B. aus dem URL-AddOn oder YForm).
+*   **Schema.org JSON-LD:** `toJsonLd()` erzeugt direkt einen `BreadcrumbList`-Script-Tag für strukturierte Daten.
+*   **Artikel einbeziehen:** Mit `setIncludeArticles()` werden Nicht-Start-Artikel jeder Kategorie als `articles`-Key mitgeliefert.
+*   **Extension Point:** `NAVIGATION_ARRAY_GENERATE_ITEM` erlaubt anderen AddOns, pro Item Daten zu ergänzen.
 
 ### Kernfunktionen
 
 -   Berücksichtigung von Offline-Artikeln und YCom-Rechten.
--   Frei wählbare Startkategorie.
+-   Frei wählbare Startkategorie (einzelne ID, Array von IDs oder automatisch via yrewrite).
 -   Festlegbare Tiefe der Navigation.
 -   Filterung und Manipulation von Kategorien über Callbacks.
 
 ### Features
 
--   `getCategory`-Methode zum Abrufen von Kategorieinformationen (inkl. Kindkategorien).
+-   `getCategory()`-Methode zum Abrufen von Kategorieinformationen (inkl. Kindkategorien).
 -   `walk()`-Methode für einfache, rekursive Navigationstraversierung.
+-   `getBreadcrumb()`-Methode mit erweiterbarem letztem Pfad.
+-   `toJsonLd()`-Methode für Schema.org `BreadcrumbList`.
+-   `setIncludeArticles()` zum Einbeziehen von Artikeln in die Navigationsstruktur.
+-   Extension Point `NAVIGATION_ARRAY_GENERATE_ITEM` für andere AddOns.
 -   Mitgelieferte Fragmente für die HTML-Ausgabe der Navigation (siehe Beispiele unten).
 
 ## Auslesen der Daten
@@ -255,9 +263,9 @@ echo $fragment->parse('navigation_array/simple_navigation.php');
 
 Dieses Beispiel zeigt, wie du mit der `walk()`-Methode ein Array der Navigation erzeugen kannst und dieses dann mit einem REDAXO-Fragment in eine einfache Navigation umwandeln kannst. Die Rekursion wird nun über die Fragments realisiert, um einen wiederverwendbaren Code zu erhalten.
 
-#### Beispiel: Breadcrumb mit `walk()`
+#### Beispiel: Breadcrumb
 
-Hier ist ein modernes Breadcrumb-Beispiel mit der `walk()`-Methode:
+Für einen einfachen Breadcrumb empfiehlt sich die neue `getBreadcrumb()`-Methode (siehe Abschnitt [Breadcrumb](#breadcrumb)). Alternativ mit `walk()`:
 
 ```php
 <?php
@@ -268,22 +276,14 @@ $breadcrumbItems = [];
 
 $navarray->walk(function ($item, $level) use (&$breadcrumbItems) {
     if ($item['active']) {
-      $liclass = '';
-        if ('REX_ARTICLE_ID' == $item['catId']) {
-            $liclass = ' class="disabled"';
-            $item['url'] = '';
-         }
-        $breadcrumbItems[] = '<li'.$liclass.'><a href="' . $item['url'] . '">' . $item['catName'] . '</a></li>';
+        $breadcrumbItems[] = '<li><a href="' . $item['url'] . '">' . $item['catName'] . '</a></li>';
     }
 });
 echo '<ul class="breadcrumb">';
-echo '<li><a title="Home" href="/"><span data-uk-icon="home"></span></a></li>';
+echo '<li><a href="/">Home</a></li>';
 echo implode("\n", $breadcrumbItems);
 echo '</ul>';
-
 ```
-
-Dieses Beispiel zeigt, wie du die `walk()` Methode nutzen kannst um einen Breadcrumb zu generieren, und dabei von den bereitgestellten Informationen Gebrauch machst.
 
 ### Vergleich: `walk()` vs. Eigene Iteration (Gleiche Ausgabe)
 
@@ -686,11 +686,10 @@ foreach ($categories as $category) {
 
 ```php
 public function __construct(
-    int $start = -1,          // Start-Kategorie ID (-1 für Root)
+    int $start = -1,          // Start-Kategorie ID (-1 für Root/yrewrite)
     int $depth = 4,           // Maximale Tiefe
     bool $ignoreOfflines = true, // Offline-Kategorien ignorieren
-    $depthSaved = 0,          // Gespeicherte Tiefe
-    int $level = 0            // Aktuelles Level
+    int $level = 0            // Aktuelles Level (intern)
 )
 ```
 
@@ -699,8 +698,6 @@ Erstellt eine neue Instanz der NavigationArray-Klasse.
 *   `$start` (`int`, optional): Die ID der Startkategorie. Verwenden Sie `-1` für die YRewrite Mount-ID oder die Root-Kategorie. Standard: `-1`.
 *   `$depth` (`int`, optional): Die maximale Tiefe der Navigation. Standard: `4`.
 *   `$ignoreOfflines` (`bool`, optional): Gibt an, ob Offline-Kategorien ignoriert werden sollen. Standard: `true`.
-*   `$depthSaved` (`int`, optional): Gespeicherte Tiefe, wird intern verwendet. Standard: `0`.
-*   `$level` (`int`, optional): Aktuelles Level, wird intern verwendet. Standard: `0`.
 
 ### Statische Methoden
 
@@ -757,8 +754,16 @@ public function setStart(int|array $start): self
 
 Setzt die Start-Kategorie(n) für die Navigation.
 
-*   `$start` (`int` oder `array` von `int`): Die ID der Startkategorie oder ein Array von Kategorie-IDs. Verwenden Sie `-1` für die YRewrite Mount-ID oder die Root-Kategorie, `0` für die Root-Kategorie oder eine positive Zahl für eine spezifische Kategorie-ID.
+*   `$start` (`int` oder `array<int>`): Eine einzelne Kategorie-ID, ein Array von Kategorie-IDs oder `-1` für automatischen yrewrite/Root-Start.
 *   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
+
+```php
+// Einzelne Start-Kategorie
+BuildArray::create()->setStart(5)->generate();
+
+// Mehrere Start-Kategorien (z. B. für gemischte Navigationen)
+BuildArray::create()->setStart([1, 5, 12])->generate();
+```
 
 #### `setDepth()`
 
@@ -816,6 +821,35 @@ Setzt eine Callback-Funktion zum Hinzufügen benutzerdefinierter Daten.
 
 *   `$callback` (`callable`): Eine Funktion, die ein `rex_category` Objekt als Parameter erhält und ein `array` mit zusätzlichen Daten zurückgibt.
 *   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
+
+#### `setIncludeArticles()`
+
+```php
+public function setIncludeArticles(bool $include = true): self
+```
+
+Bezieht Nicht-Start-Artikel jeder Kategorie unter dem Key `articles` in die Ausgabe ein.
+
+*   `$include` (`bool`): Standard: `true`.
+*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
+
+### Breadcrumb & JSON-LD
+
+#### `getBreadcrumb()`
+
+```php
+public function getBreadcrumb(?int $categoryId = null, array $append = []): array
+```
+
+Gibt den Breadcrumb-Pfad von Root bis zur aktuellen (oder angegebenen) Kategorie zurück. Eigene Einträge (z. B. Detailseiten) können über `$append` angehängt werden.
+
+#### `toJsonLd()`
+
+```php
+public function toJsonLd(?int $categoryId = null, array $append = []): string
+```
+
+Gibt einen fertigen `<script type="application/ld+json">`-Tag mit Schema.org `BreadcrumbList` zurück.
 
 ### Verwendung von `toJson()`
 
@@ -879,6 +913,184 @@ Das generierte JSON sieht etwa so aus:
     }
 ]
 ```
+
+#### `setIncludeArticles()`
+
+```php
+public function setIncludeArticles(bool $include = true): self
+```
+
+Bezieht Nicht-Start-Artikel jeder Kategorie in das Array mit ein. Start-Artikel werden automatisch ausgeblendet. Die Artikel stehen unter dem Key `articles` im jeweiligen Kategorie-Eintrag.
+
+*   `$include` (`bool`): Artikel einbeziehen. Standard: `true`.
+*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
+
+```php
+$nav = BuildArray::create()
+    ->setDepth(2)
+    ->setIncludeArticles()
+    ->generate();
+
+// $nav[0]['articles'] = [
+//   ['articleId' => 42, 'catName' => 'Artikel-Titel', 'url' => '/news/artikel/', ...]
+// ]
+```
+
+---
+
+## Breadcrumb
+
+### `getBreadcrumb()`
+
+```php
+public function getBreadcrumb(?int $categoryId = null, array $append = []): array
+```
+
+Gibt den Pfad von Root-Ebene bis zur aktuellen (oder angegebenen) Kategorie als flaches Array zurück.
+
+Über `$append` können beliebig viele eigene Einträge am Ende ergänzt werden – ideal für Detailseiten aus dem URL-AddOn, YForm-Datensätze, Shop-Produkte u. ä.
+
+*   `$categoryId` (`int|null`): Zielkategorie, `null` = aktuelle Kategorie.
+*   `$append` (`array`): Zusätzliche Items mit den Keys `name` und `url`.
+
+#### Rückgabe-Array
+
+Jeder Eintrag enthält:
+
+| Key | Typ | Beschreibung |
+|---|---|---|
+| `catId` | `int\|null` | Kategorie-ID oder `null` bei eigenen Einträgen |
+| `catName` | `string` | Name/Titel |
+| `url` | `string` | URL |
+| `current` | `bool` | `true` nur beim letzten Element |
+
+#### Beispiel: Einfacher Breadcrumb
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+$breadcrumb = BuildArray::create()->getBreadcrumb();
+echo '<nav aria-label="breadcrumb"><ol class="breadcrumb">';
+foreach ($breadcrumb as $item) {
+    if ($item['current']) {
+        echo '<li class="breadcrumb-item active" aria-current="page">' . rex_escape($item['catName']) . '</li>';
+    } else {
+        echo '<li class="breadcrumb-item"><a href="' . $item['url'] . '">' . rex_escape($item['catName']) . '</a></li>';
+    }
+}
+echo '</ol></nav>';
+```
+
+#### Beispiel: Breadcrumb mit Detailseite aus dem URL-AddOn
+
+Wenn auf einer Kategorieseite ein Artikel-Detail (z. B. Shop-Produkt, News) angezeigt wird, kann der Seitentitel als letzter Pfad angehängt werden:
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+// Titel und URL des Detail-Artikels – z. B. aus einem yform-Datensatz oder URL-Addon
+$detailTitle = 'Produktname XY';
+$detailUrl   = rex_getUrl(REX_ARTICLE_ID, '', ['product' => 42]);
+
+$breadcrumb = BuildArray::create()->getBreadcrumb(append: [
+    ['name' => $detailTitle, 'url' => $detailUrl],
+]);
+
+echo '<nav aria-label="breadcrumb"><ol class="breadcrumb">';
+foreach ($breadcrumb as $item) {
+    if ($item['current']) {
+        echo '<li class="breadcrumb-item active" aria-current="page">' . rex_escape($item['catName']) . '</li>';
+    } else {
+        echo '<li class="breadcrumb-item"><a href="' . $item['url'] . '">' . rex_escape($item['catName']) . '</a></li>';
+    }
+}
+echo '</ol></nav>';
+```
+
+---
+
+## Schema.org JSON-LD
+
+### `toJsonLd()`
+
+```php
+public function toJsonLd(?int $categoryId = null, array $append = []): string
+```
+
+Gibt einen fertigen `<script type="application/ld+json">`-Tag mit einer Schema.org `BreadcrumbList` zurück. Akzeptiert die gleichen Parameter wie `getBreadcrumb()`.
+
+#### Beispiel: JSON-LD im Template-Head
+
+```php
+<?php
+use FriendsOfRedaxo\NavigationArray\BuildArray;
+
+// Für normale Kategorieseiten
+echo BuildArray::create()->toJsonLd();
+
+// Für Detailseiten mit eigenem letzten Pfad
+echo BuildArray::create()->toJsonLd(append: [
+    ['name' => 'Produktname XY', 'url' => rex_getUrl(REX_ARTICLE_ID, '', ['product' => 42])],
+]);
+```
+
+Erzeugte Ausgabe:
+
+```html
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "/"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "News",
+            "item": "/news/"
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Produktname XY",
+            "item": "/news/?product=42"
+        }
+    ]
+}
+</script>
+```
+
+---
+
+## Extension Point
+
+### `NAVIGATION_ARRAY_GENERATE_ITEM`
+
+Feuert für jedes generierte Navigations-Item. Andere AddOns können so eigene Daten hinzufügen, ohne den `customDataCallback` zu überschreiben.
+
+```php
+rex_extension::register('NAVIGATION_ARRAY_GENERATE_ITEM', function (rex_extension_point $ep) {
+    $item = $ep->getSubject();     // array<string, mixed>
+    $cat  = $ep->getParam('cat'); // rex_category
+    $level = $ep->getParam('level'); // int
+
+    // Beispiel: Kategoriebild aus eigenem Metafeld hinzufügen
+    $item['cat_image'] = $cat->getValue('cat_teaser_image');
+
+    return $item;
+});
+```
+
+Der Extension Point wird **nach** dem `customDataCallback` ausgeführt – beide Mechanismen sind kombinierbar.
+
+---
 
 ## Autor
 
