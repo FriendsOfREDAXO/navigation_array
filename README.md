@@ -856,21 +856,21 @@ Gibt einen fertigen `<script type="application/ld+json">`-Tag mit Schema.org `Br
 ```php
 <?php
 use FriendsOfRedaxo\NavigationArray\BuildArray;
+
 // Grundlegende Verwendung
 $nav = BuildArray::create()->setDepth(3);
 $jsonString = $nav->toJson();
 
-// Mit allen Optionen
-$nav = BuildArray::create()
+// Mit allen Optionen – toJson() terminiert die Chain und gibt einen string zurück
+$jsonString = BuildArray::create()
     ->setStart(5)             // Startet bei Kategorie ID 5
-    ->setDepth(2)            // Zwei Ebenen tief
-    ->setIgnore(true)        // Ignoriert Offline-Kategorien
+    ->setDepth(2)             // Zwei Ebenen tief
+    ->setIgnore(true)         // Ignoriert Offline-Kategorien
     ->setExcludedCategories([10, 15]) // Schließt Kategorien aus
-    ->toJson();              // Gibt JSON zurück
+    ->toJson();               // Gibt JSON-String zurück
 
-// JSON in Variable speichern und ausgeben
-$jsonNavigation = $nav->toJson();
-echo $jsonNavigation;
+// JSON ausgeben
+echo $jsonString;
 
 // Direkt als AJAX Response verwenden
 header('Content-Type: application/json');
@@ -879,6 +879,7 @@ echo BuildArray::create()
     ->toJson();
 
 // JSON decodieren für weitere Verarbeitung
+$nav = BuildArray::create()->setDepth(3);
 $navigationArray = json_decode($nav->toJson(), true);
 ```
 

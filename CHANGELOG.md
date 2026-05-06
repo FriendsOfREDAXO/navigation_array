@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.4.2] – 2026-05-06
+
+### Fixed
+
+- **README-Beispiel `toJson()`** – Fehlerhaftes Code-Beispiel korrigiert, das `->toJson()` als Fluent-Chain-Abschluss verwendete und danach erneut `->toJson()` auf dem zurückgegebenen `string` aufrief. Dies führte zu `Call to a member function toJson() on string`. Alle Beispiele zeigen nun die korrekte Verwendung mit separater Variable.
+
 ## [5.4.1] – 2026-05-06
 
 ### Fixed
