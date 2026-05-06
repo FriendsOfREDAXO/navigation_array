@@ -8,6 +8,7 @@ use rex_category;
 use rex_clang;
 use rex_extension;
 use rex_extension_point;
+use rex_request;
 use rex_yrewrite;
 
 use function call_user_func;
@@ -528,13 +529,23 @@ class BuildArray
     {
         $breadcrumb = $this->getBreadcrumb($categoryId, $append);
 
+        // Google requires absolute URLs in JSON-LD BreadcrumbList
+        // @see https://developers.google.com/search/docs/appearance/structured-data/breadcrumb
+        $scheme = rex_request::isHttps() ? 'https' : 'http';
+        $host = rex_request::server('HTTP_HOST', 'string', '');
+        $baseUrl = $scheme . '://' . $host;
+
         $items = [];
         foreach ($breadcrumb as $position => $item) {
+            $url = $item['url'];
+            if ($url !== '' && !str_starts_with($url, 'http://') && !str_starts_with($url, 'https://')) {
+                $url = $baseUrl . '/' . ltrim($url, '/');
+            }
             $items[] = [
                 '@type' => 'ListItem',
                 'position' => $position + 1,
                 'name' => $item['catName'],
-                'item' => $item['url'],
+                'item' => $url,
             ];
         }
 
