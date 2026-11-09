@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0-dev] – Branch 6.x (REDAXO 6, in Entwicklung)
+
+Neu gebaut für REDAXO 6 und PHP 8.5 – ohne Rücksicht auf die API von 5.x (siehe „Umstieg von REDAXO 5“ in der README).
+
+### Changed
+
+- Composer-Paket vom Typ `redaxo-addon` (`friendsofredaxo/navigation_array`), Klassen in `src/`.
+- `Navigation` (readonly, benannte Argumente) statt `BuildArray` mit Settern; Einträge sind `NavigationItem`-Objekte
+  statt Arrays (`JsonSerializable`), Brotkrumen `BreadcrumbItem`.
+- `walk()` rendert verschachtelt: Callback mit Eintrag und Closure für die Kinder, Rückgabe als String.
+- Rechte über `Category::isPermitted()` des Cores statt YCom.
+- Extension Points als Klassen: `NavigationItemGenerated` (statt `NAVIGATION_ARRAY_GENERATE_ITEM`) und
+  `NavigationStart` (Start der Website statt yrewrite).
+- Komponenten `NavigationMenu` und `NavigationBreadcrumb` (View-Dateien, per `ViewResolver::override()` ersetzbar)
+  statt des Fragments – Fragmente entfallen in REDAXO 6.
+- `jsonLd()` baut absolute Adressen über `Url::absoluteBase()` (auch auf der Konsole mit `REX_BASE_URL`).
+- Option `languageId` für eine Navigation in einer anderen Sprache.
+
+### Removed
+
+- `package.yml`, `lib/`, Fragment, Veröffentlichung im REDAXO-5-Installer (bleibt im Branch `master`).
+
 ## [5.4.2] – 2026-05-06
 
 ### Fixed

@@ -1,0 +1,39 @@
+{
+    "name": "friendsofredaxo/navigation_array",
+    "description": "Navigation als Array für REDAXO 6: Kategorien und Artikel mit Hierarchie, Filter, Brotkrumen und JSON-LD – die Ausgabe bleibt bei dir",
+    "type": "redaxo-addon",
+    "license": "MIT",
+    "keywords": [
+        "redaxo",
+        "redaxo-addon",
+        "redaxo6",
+        "navigation",
+        "menu",
+        "breadcrumb"
+    ],
+    "homepage": "https://github.com/FriendsOfREDAXO/navigation_array",
+    "authors": [
+        {
+            "name": "Friends Of REDAXO",
+            "homepage": "https://friendsofredaxo.github.io"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/FriendsOfREDAXO/navigation_array/issues",
+        "source": "https://github.com/FriendsOfREDAXO/navigation_array"
+    },
+    "require": {
+        "php": "^8.5",
+        "redaxo/core": "^6.0@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "FriendsOfRedaxo\\NavigationArray\\": "src/"
+        }
+    },
+    "extra": {
+        "redaxo": {
+            "addon-class": "FriendsOfRedaxo\\NavigationArray\\NavigationArrayAddon"
+        }
+    }
+}

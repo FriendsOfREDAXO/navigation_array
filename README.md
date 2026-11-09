@@ -1,1105 +1,239 @@
-# REDAXO Navigation Array
+# Navigation Array für REDAXO 6
 
-Navigation Array ist eine PHP-Klasse für die einfache Erstellung einer Navigationsstruktur als Array. Diese Klasse bietet flexible Möglichkeiten, Navigationsdaten auszulesen, zu filtern und zu verarbeiten, insbesondere durch die Nutzung der `walk()`-Methode.
+Die Navigation als Baum typisierter Einträge: Kategorien (auf Wunsch mit ihren Artikeln), der aktuelle Pfad und eigene
+Daten – die Ausgabe bleibt ganz bei dir. Dazu Brotkrumen, strukturierte Daten (Schema.org `BreadcrumbList`) und zwei
+Komponenten für Menü und Brotkrumen.
 
-## Erklärung der Klasse
+> [!NOTE]
+> Dies ist der Branch **6.x** für REDAXO 6, das noch in Entwicklung ist (Branch 6.x von redaxo/core). Er ist für PHP 8.5
+> und die API von REDAXO 6 neu gebaut – ohne Rücksicht auf die Version für REDAXO 5. Die gibt es unverändert im Branch
+> [`master`](https://github.com/FriendsOfREDAXO/navigation_array/tree/master) und im Installer.
 
-Die `FriendsOfRedaxo\NavigationArray\BuildArray` Klasse bietet folgende Hauptfunktionalitäten:
+## Installation
 
-*   **Erstellung eines Navigationsarrays:** Generiert ein verschachteltes Array, das die Kategorien und ihre Hierarchie darstellt.
-*   **Filterung von Kategorien:** Ermöglicht das Herausfiltern von Kategorien basierend auf benutzerdefinierten Kriterien.
-*   **Hinzufügen benutzerdefinierter Daten:** Fügt zusätzliche Informationen zu jedem Kategorie-Array hinzu.
-*   **Rekursive Navigationstraversierung:** Die `walk()`-Methode erlaubt es, die Navigationsstruktur rekursiv zu durchlaufen und dabei individuelle Operationen auszuführen.
-*   **Abrufen von Kategorieinformationen:** Mit der `getCategory()`-Methode können detaillierte Informationen zu einzelnen Kategorien abgerufen werden.
-*   **Breadcrumb-Generierung:** `getBreadcrumb()` liefert den Pfad von Root bis zur aktuellen Kategorie – erweiterbar mit eigenen Einträgen (z. B. aus dem URL-AddOn oder YForm).
-*   **Schema.org JSON-LD:** `toJsonLd()` erzeugt direkt einen `BreadcrumbList`-Script-Tag für strukturierte Daten.
-*   **Artikel einbeziehen:** Mit `setIncludeArticles()` werden Nicht-Start-Artikel jeder Kategorie als `articles`-Key mitgeliefert.
-*   **Extension Point:** `NAVIGATION_ARRAY_GENERATE_ITEM` erlaubt anderen AddOns, pro Item Daten zu ergänzen.
+REDAXO 6 installiert AddOns mit Composer. Solange das Paket nicht auf Packagist steht, holt Composer es direkt von GitHub:
 
-### Kernfunktionen
-
--   Berücksichtigung von Offline-Artikeln und YCom-Rechten.
--   Frei wählbare Startkategorie (einzelne ID, Array von IDs oder automatisch via yrewrite).
--   Festlegbare Tiefe der Navigation.
--   Filterung und Manipulation von Kategorien über Callbacks.
-
-### Features
-
--   `getCategory()`-Methode zum Abrufen von Kategorieinformationen (inkl. Kindkategorien).
--   `walk()`-Methode für einfache, rekursive Navigationstraversierung.
--   `getBreadcrumb()`-Methode mit erweiterbarem letztem Pfad.
--   `toJsonLd()`-Methode für Schema.org `BreadcrumbList`.
--   `setIncludeArticles()` zum Einbeziehen von Artikeln in die Navigationsstruktur.
--   Extension Point `NAVIGATION_ARRAY_GENERATE_ITEM` für andere AddOns.
--   Mitgelieferte Fragmente für die HTML-Ausgabe der Navigation (siehe Beispiele unten).
-
-## Auslesen der Daten
-
-### Array-Struktur
-
-Das generierte Array enthält alle Kategorien und Unterkategorien bis zur angegebenen Tiefe. Offline-Kategorien und Rechte aus YCom werden vorher entfernt.
-
-```php
-array:7 [
-    0 => array:11 [▶]
-    1 => array:11 [▶]
-    2 => array:11 [▶]
-    3 => array:11 [▶]
-    4 => array:11 [
-        "catId" => 43
-        "parentId" => 0
-        "level" => 0
-        "catName" => "Kontakt"
-        "url" => "/kontakt/"
-        "hasChildren" => true
-        "children" => array:2 [
-            0 => array:11 [
-                "catId" => 178
-                "parentId" => 43
-                "level" => 1
-                "catName" => "Kontaktformular"
-                "url" => "/kontakt/kontaktformular/"
-                "hasChildren" => false
-                "children" => []
-                "path" => array:1 [▶]
-                "active" => false
-                "current" => false
-            ]
-            1 => array:11 [▶]
-        ]
-        "path" => []
-        "active" => true
-        "current" => true
-    ]
-    5 => array:11 [▶]
-    6 => array:11 [▶]
-]
+```bash
+composer config repositories.navigation_array '{"type": "vcs", "url": "https://github.com/FriendsOfREDAXO/navigation_array", "no-api": true}'
+composer require friendsofredaxo/navigation_array:6.x-dev
+php bin/console migrate
 ```
 
-### Array generieren
+Voraussetzungen: PHP 8.5, REDAXO 6. Keine Einstellungen, keine eigenen Tabellen.
 
-#### Aufruf mit Konstruktor
+## Schnellstart: `walk()`
 
-```php
-// define namespace
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-// create object
-$navigationObject = new BuildArray(-1, 3);
-// generate navigation array
-$navigationArray = $navigationObject->generate();
-```
-
-#### Aufruf mit Methoden
+`walk()` ist der empfohlene Weg zur Ausgabe. Der Callback rendert einen Eintrag und bekommt eine Closure, die dessen
+Kinder genauso rendert – verschachteltes Markup ohne Buchhaltung über Ebenen:
 
 ```php
-// define namespace
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-// create navigation array
-$navigationArray = BuildArray::create()
-    ->setStart(-1)
-    ->setDepth(4)
-    ->setIgnore(true)
-    ->setCategoryFilterCallback(CategoryFilter())
-    ->setCustomDataCallback(CustomData())
-    ->generate();
+use FriendsOfRedaxo\NavigationArray\Navigation;
+use FriendsOfRedaxo\NavigationArray\NavigationItem;
+
+use function Redaxo\Core\View\escape;
+
+$nav = new Navigation(depth: 1, exclude: [12]);   // erste Ebene und eine darunter, ohne Kategorie 12
+
+echo '<nav><ul>' . $nav->walk(static fn (NavigationItem $item, Closure $children): string => '<li' . ($item->active ? ' class="active"' : '') . '>'
+    . '<a href="' . escape($item->url) . '"' . ($item->current ? ' aria-current="page"' : '') . '>' . escape($item->name) . '</a>'
+    . ($item->hasChildren() ? '<ul>' . $children() . '</ul>' : '')
+    . '</li>') . '</ul></nav>';
 ```
 
-## Erstellen von Navigationen
-
-### Verwendung der `walk()`-Methode
-
-Die `walk()`-Methode ermöglicht es, die Navigation rekursiv zu durchlaufen und dabei eine Callback-Funktion auf jedes Element anzuwenden. Dies ist ideal für benutzerdefinierte Ausgaben oder Manipulationen der Navigationsdaten.
-
-#### Verwendung
-
-```php
-public function walk(callable $callback): void
-```
-
-#### Parameter
-
--   `$callback`: Eine `callable`-Funktion, die für jedes Navigationselement aufgerufen wird. Die Funktion erhält zwei Parameter:
-    -   `$item`: Das aktuelle Navigationselement (als `array`).
-    -   `$level`: Die aktuelle Ebene der Navigation (als `int`).
-
-#### Beispiel: Verschachtelte HTML-Liste mit `walk()`
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-$htmlNavigation = '';
-$currentLevel = 0;
-$lastItem = null;
-
-$navigation = BuildArray::create()
-    ->setDepth(3)
-    ->setExcludedCategories([32,34])
-    ->setCategoryFilterCallback(function(rex_category $cat){
-        return true;
-    })
-    ->setCustomDataCallback(function(rex_category $cat){
-        return [
-            'css_id' => 'cat-'.$cat->getId(),
-            'description' => $cat->getValue('description')
-        ];
-    });
-
-$items = []; // Sammle alle Items
-$navigation->walk(function ($item, $level) use (&$items) {
-    $items[] = ['item' => $item, 'level' => $level];
-});
-
-// Verarbeite die Items
-for ($i = 0; $i < count($items); $i++) {
-    $currentItem = $items[$i];
-    $level = $currentItem['level'];
-    $item = $currentItem['item'];
-    
-    // Prüfe auf Leveländerungen
-    if ($level > $currentLevel) {
-        $htmlNavigation .= "\n" . str_repeat('  ', $level) . '<ul>';
-    } elseif ($level < $currentLevel) {
-        // Schließe übergeordnete Level
-        $diff = $currentLevel - $level;
-        for ($j = 0; $j < $diff; $j++) {
-            $htmlNavigation .= '</li>' . "\n" . str_repeat('  ', $currentLevel - $j - 1) . '</ul>';
-            if ($j < $diff - 1) {
-                $htmlNavigation .= '</li>';
-            }
-        }
-    } elseif ($i > 0) {
-        // Auf gleichem Level: Schließe vorheriges li
-        $htmlNavigation .= '</li>';
-    }
-    
-    $htmlNavigation .= "\n" . str_repeat('  ', $level);
-    $activeClass = $item['active'] ? ' class="active"' : '';
-    $htmlNavigation .= '<li' . $activeClass . '>';
-    $htmlNavigation .= '<a href="' . $item['url'] . '" id="' . $item['css_id'] . '">';
-    $htmlNavigation .= $item['catName'];
-    $htmlNavigation .= '</a>';
-    
-    $currentLevel = $level;
-}
-
-// Schließe verbleibende offene Tags
-if ($currentLevel >= 0) {
-    for ($i = $currentLevel; $i >= 0; $i--) {
-        $htmlNavigation .= '</li>' . "\n" . str_repeat('  ', $i) . '</ul>';
-    }
-}
-
-echo $htmlNavigation;
-```
-
-#### Beispiel: Logausgabe der Navigation mit `walk()`
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-$navigation = BuildArray::create()->setDepth(2);
-
-$navigation->walk(function ($item, $level) {
-    echo str_repeat("  ", $level) . "Kategorie: " . $item['catName'] . ", Level: " . $level . ", URL: " . $item['url'] . "<br>";
-});
-```
-
-#### Beispiel: Einfache Navigation mit `walk()` und REDAXO Fragment
-
-Hier ein Beispiel, wie du die `walk()`-Methode in Verbindung mit einem REDAXO-Fragment für eine einfache Navigation verwenden kannst.
-
-**1. Fragment (`simple_navigation.php`)**:
-Erstelle eine Fragmentdatei im Verzeichnis `fragments/navigation_array` mit folgendem Inhalt:
-
-```php
-<?php
-    $items = $this->getVar('items');
-    $level = $this->getVar('level', 0);
-    $activeClass = $this->getVar('activeClass', 'active');
-    
-    if (empty($items)) {
-        return '';
-    }
-    $output = '<ul>';
-    foreach ($items as $item) {
-         $active = $item['active'] ? ' class="'.$activeClass.'"' : '';
-        $output .= '<li' . $active . '><a href="'.$item['url'].'">'.$item['catName'].'</a>';
-         if(isset($item['children']) && !empty($item['children'])){
-           
-            $output .= $this->subfragment('navigation_array/simple_navigation.php', [
-                'items' => $item['children'],
-                'level' => $level +1,
-                'activeClass' => $activeClass
-            ]);
-         }
-      $output .='</li>';
-    }
-    $output .= '</ul>';
-    echo $output;
-?>
-```
-
-**2. Aufruf im Template:**
-In deinem REDAXO-Template kannst du die Navigation wie folgt erstellen:
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-$navigation = BuildArray::create()->setDepth(3);
-$htmlNavigation = '';
-$items = [];
-$navigation->walk(function ($item, $level) use (&$items) {
-   $items[] = $item;
-});
-
-
-$fragment = new rex_fragment();
-$fragment->setVar('items', $items);
-$fragment->setVar('activeClass', 'active');
-echo $fragment->parse('navigation_array/simple_navigation.php');
-```
-
-Dieses Beispiel zeigt, wie du mit der `walk()`-Methode ein Array der Navigation erzeugen kannst und dieses dann mit einem REDAXO-Fragment in eine einfache Navigation umwandeln kannst. Die Rekursion wird nun über die Fragments realisiert, um einen wiederverwendbaren Code zu erhalten.
-
-#### Beispiel: Breadcrumb
-
-Für einen einfachen Breadcrumb empfiehlt sich die neue `getBreadcrumb()`-Methode (siehe Abschnitt [Breadcrumb](#breadcrumb)). Alternativ mit `walk()`:
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-$navarray = BuildArray::create()->setDepth(10);
-$breadcrumbItems = [];
-
-$navarray->walk(function ($item, $level) use (&$breadcrumbItems) {
-    if ($item['active']) {
-        $breadcrumbItems[] = '<li><a href="' . $item['url'] . '">' . $item['catName'] . '</a></li>';
-    }
-});
-echo '<ul class="breadcrumb">';
-echo '<li><a href="/">Home</a></li>';
-echo implode("\n", $breadcrumbItems);
-echo '</ul>';
-```
-
-### Vergleich: `walk()` vs. Eigene Iteration (Gleiche Ausgabe)
-
-Um die Vorteile der `walk()`-Methode zu verdeutlichen, zeigen wir hier, wie man die gleiche verschachtelte Navigation mit beiden Methoden erstellt. Dies ermöglicht einen direkten Code-Vergleich.
-
-#### Mit `walk()`-Methode
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-$navigation = BuildArray::create()->setDepth(3);
-$htmlOutput = '';
-
-$navigation->walk(function($item, $level) use (&$htmlOutput) {
-   $htmlOutput .= str_repeat("&nbsp;&nbsp;", $level) . '<a href="' . $item['url'] . '">' . $item['catName'] . '</a><br>';
-});
-
-echo $htmlOutput;
-```
-
-#### Mit eigener Iterationsfunktion
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-function myCustomNavigation($items, $level = 0) {
-    $output = '';
-    foreach ($items as $item) {
-        $output .= str_repeat("&nbsp;&nbsp;", $level) . '<a href="' . $item['url'] . '">' . $item['catName'] . '</a><br>';
-        if ($item['hasChildren']) {
-            $output .= myCustomNavigation($item['children'], $level + 1);
-        }
-    }
-    return $output;
-}
-
-$navigation = BuildArray::create()->setDepth(3)->generate();
-echo myCustomNavigation($navigation);
-```
-
-**Analyse:**
-
-*   **Klarheit:** Beide Code-Beispiele erzeugen *exakt* die gleiche HTML-Ausgabe.
-*   **Code-Kürze:** Die `walk()`-Methode erfordert *deutlich weniger* Code und ist lesbarer, da die Rekursionslogik intern gehandhabt wird.
-*   **Wartbarkeit:** Der Code mit `walk()` ist einfacher zu warten, da die Rekursionslogik gekapselt ist.
-*   **Flexibilität:** Die `walk()`-Methode ermöglicht es, die Logik der Ausgabe in einem Callback zu definieren, was die Flexibilität erhöht.
-
-Dieser direkte Vergleich zeigt, dass die `walk()`-Methode eine prägnantere, klarere und wartungsfreundlichere Möglichkeit bietet, die Navigationsdaten zu verarbeiten.
-
-## Weitere Beispiele
-
-Neben der Nutzung von `walk()`, können auch die generierten Arrays direkt für die Ausgabe genutzt werden.
-
-### Fragmente
-
-Mit Fragmenten wird die Logik sauber vom Code getrennt. Das Fragment `navigation.php` kann kopiert, angepasst und in `project` oder `theme`-Ordner abgelegt werden.
-
-```php
-// Festlegen des Namespace
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-// Navigation Array erstellen
-$navigationObject = new BuildArray(-1, 3);
-$navigationArray = $navigationObject->generate();
-
-//Fragmente laden Navigation Array und Klasse für aktive Elemente übergeben
-$fragment = new rex_fragment();
-$fragment->setVar('navigationArray', $navigationArray);
-$fragment->setVar('activeClass', 'active');
-
-// Navigation ausgeben
-<nav>
-    <ul role="menubar">
-        echo $fragment->parse('navigation_array/navigation.php');
-    </ul>
-</nav>
-```
-
-### Weitere PHP-Funktionen (Auswahl)
-
-Hier sind weitere Beispiele für spezifische HTML-Ausgaben
-
-#### Beispiel erweiterte Navigation mit Callback
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-$mainnavi_array = (new BuildArray())
-    ->setCustomDataCallback(function($cat) {
-        return ['navtype' => $cat->getValue('cat_navigationstyp')];
-    })
-    ->generate();
-
-$mainnavigation_items = [];
-
-function createNavigationItems($navi) {
-    $items = [];
-    $class_active = $navi['active'] ? 'active' : '';
-    $class_current = $navi['current'] ? ' current' : '';
-    $class_has_child = $navi['children'] ? ' has-child' : '';
-
-    $items[] = "<li class=\"{$class_active}{$class_current}{$class_has_child}\"><a href=\"{$navi['url']}\">{$navi['catName']}</a>";
-
-    if ($navi['children']) {
-        $items[] = '<button class="child-toggle">X</button>';
-        $items[] = '<ul>';
-
-        foreach ($navi['children'] as $nav_child) {
-            $items[] = createNavigationItems($nav_child);
-        }
-
-        $items[] = '</ul>';
-    }
-
-    $items[] = '</li>';
-
-    return implode($items);
-}
-
-foreach ($mainnavi_array as $navi) {
-    $navtype_arr = explode('|', $navi['navtype']);
-
-    if (in_array('main', $navtype_arr)) {
-        $mainnavigation_items[] = createNavigationItems($navi);
-    }
-}
-
-$mainnavigation = '<ul id="mainnavigation">' . implode($mainnavigation_items) . '</ul>';
-```
-
-#### Beispiel: Bootstrap 5 Navigation
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-function bsnavi5($data = array())
-{
-    $output = array();
-    foreach ($data as $cat) {
-        $subnavi = $catname = $li = $active =
-
- $ul = $link_extra = "";
-        $aclass = 'nav-link';
-        $li = ' class="nav-item"';
-
-        if ($cat['level'] == 0 && $cat['hasChildren'] == true) {
-            $li = ' class="nav-item dropdown"';
-            $ul = ' class="dropdown-menu"';
-            $link_extra = 'id="ddm' . $cat['catId'] . '" data-bs-toggle="dropdown"';
-            $aclass = 'nav-link dropdown-toggle';
-        }
-
-        if ($cat['level'] == 1 && $cat['hasChildren'] == false) {
-            $li = ' class="nav-item dropdown"';
-            $aclass = 'dropdown-item';
-        }
-
-        if ($cat['hasChildren'] == true) {
-            $sub = [];
-            $sub[] = '<ul' . $ul . '>';
-            $sub[] = bsnavi5($cat['children']);
-            $sub[] = '</ul>';
-            $subnavi = join("\n", $sub);
-        }
-
-        $catname = $cat['catName'];
-        if ($cat['active'] == true) {
-            $active = ' active';
-        }
-
-        $catname = '<a class="' . $aclass . $active . '" href="' . $cat['url'] . '"' . $link_extra . '>' . $catname . '</a>';
-        $output[] = '<li ' . $li . '>' . $catname . $subnavi . '</li>';
-    }
-    return implode("\n", $output);
-}
-
-
-$NavigationArray = BuildArray::create()->setDepth(4)->generate();
-?>
-
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <ul class="navbar-nav ms-md-auto mb-0">
-            <?= bsnavi5($NavigationArray) ?>
-        </ul>
-    </div>
-</nav>
-</body>
-```
-
-#### Beispiel UIkit-Drop-Down
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-// UIkit NAVIGATION uses navigation_array AddOn
-function myNavi_demo($data = array())
-{
-    $output = [];
-    foreach ($data as $cat) {
-        $subnavi = $liclass = $ul = "";
-        $subclass = 'uk-default';
-        if ($cat['level'] == 0 && $cat['hasChildren'] == true) {
-            $liclass = 'uk-parent ';
-            $ul = ' class="uk-nav uk-navbar-dropdown-nav"';
-            $subclass = 'uk-navbar-dropdown uk-margin-remove uk-padding-small';
-        }
-        if ($cat['hasChildren'] == true) {
-            $sub = [];
-            $sub[] = '<div class="' . $subclass . '">';
-            $sub[] = '<ul' . $ul . '>';
-            $sub[] = myNavi_demo($cat['children']);
-            $sub[] = '</ul>';
-            $sub[] = '</div>';
-            $subnavi = join("\n", $sub);
-        }
-        $catname = $cat['catName'];
-        if ($cat['active'] == true) {
-            $catname = '' . $catname . '';
-            $liclass .= 'uk-active';
-        }
-        if ($liclass != '') {
-            $liclass = ' class="' . $liclass . '"';
-        }
-        $catname = '<a href="' . $cat['url'] . '">' . $catname . '</a>';
-        $output[] = '<li' . $liclass . '>' . $catname . $subnavi . '</li>';
-    }
-
-    if (!empty($output)) {
-        return implode("\n", $output);
-    }
-}
-// Navigation erzeugen
-
-$NavigationArray = BuildArray::create()->setDepth(3)->generate();
-$navigation = '
-    <ul class="uk-navbar-nav">'
-    . myNavi_demo($NavigationArray) .
-    '</ul>
-';
-?>
-<!--- NAVI-BAR --->
-<div class="nav">
-    <nav class="uk-box-shadow-small uk-background-secondary uk-light " uk-navbar>
-        <div class="uk-navbar-left">
-            <a class="uk-navbar-item uk-logo" title="Logo: <?=rex::getServerName()?>" href="/">
-                <img class="logo" name="Logo" src="<?=rex_url::media()?>logo.svg" alt="">
-            </a>
-        </div>
-        <div class="uk-visible@m uk-navbar-center uk-text-large">
-            <?= $navigation; ?>
-        </div>
-        <div class="uk-navbar-right">
-            <a class="uk-icon-button uk-margin-right" href="https://github.com/FriendsOfREDAXO" uk-icon="icon: github"></a>
-        </div>
-    </nav>
-</div>
-<!--- ENDE NAVI-BAR --->
-```
-
-### `getCategory()`
-
-Liefert ein Array mit allen Informationen zu einer Kategorie. Funktioniert sowohl für die aktuelle Kategorie als auch für eine spezifische Kategorie-ID.
-
-### Basis-Verwendung
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-// Aktuelle Kategorie
-$category = BuildArray::create()->getCategory();
-
-// Spezifische Kategorie
-$category = BuildArray::create()->getCategory(5);
-```
-
-### Rückgabe-Array
-
-```php
-[
-    // Hauptkategorie-Informationen
-    'catId' => 5,                  // ID der Kategorie
-    'parentId' => 2,               // ID der Elternkategorie
-    'catName' => 'News',           // Name der Kategorie
-    'url' => '/news/',             // URL der Kategorie
-    'hasChildren' => true,         // Hat Unterkategorien
-    'path' => [0,2,5],            // Pfad von Root zur Kategorie
-    'pathCount' => 3,              // Anzahl der Ebenen von Root
-    'active' => true,              // Ist im aktiven Pfad
-    'current' => true,             // Ist aktuelle Kategorie
-    'cat' => Object,               // REX Category Objekt
-    'ycom_permitted' => true,      // YCom-Berechtigung
-    'filter_permitted' => true,    // Filter-Erlaubnis
-    'is_permitted' => true,        // Gesamtstatus der Berechtigungen
-    
-    // Kinder-Array (aus processCategory)
-    'children' => [
-        [
-            'catId' => 15,         // ID der Kindkategorie
-            'parentId' => 5,       // ID der Elternkategorie (unsere Hauptkategorie)
-            'level' => 3,          // Level aus processCategory
-            'catName' => 'Events', // Name der Kindkategorie
-            'url' => '/news/events/', // URL der Kindkategorie
-            'hasChildren' => false, // Hat diese Kindkategorie weitere Unterkategorien
-            'children' => [],       // Eventuelle Kinder der Kindkategorie
-            'path' => [0,2,5,15],  // Pfad dieser Kindkategorie
-            'active' => false,      // Ist diese Kindkategorie aktiv
-            'current' => false      // Ist diese Kindkategorie die aktuelle Kategorie
-        ],
-        [
-            'catId' => 16,
-            'parentId' => 5,
-            'level' => 3,
-            'catName' => 'Blog',
-            // ... weitere Eigenschaften wie oben
-        ],
-        // ... weitere Kindkategorien
-    ],
-
-    // Zusätzliche Custom-Daten (wenn definiert)
-    'custom_field' => 'Wert',
-    'another_field' => 'Wert'
-]
-```
-
-### Beispiele
-
-#### 1. Kategorie-Vergleich
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-$currentCat = BuildArray::create()->getCategory();
-$parentCat = BuildArray::create()->getCategory($currentCat['parentId']);
-
-echo '<div class="category-nav">';
-echo '<h2>' . $parentCat['catName'] . '</h2>';
-echo '<h3>Sie befinden sich hier: ' . $currentCat['catName'] . '</h3>';
-echo '</div>';
-```
-
-#### 2. Mit Custom-Daten
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-$category = BuildArray::create()
-    ->setCustomDataCallback(function($cat) {
-        return [
-            'image' => $cat->getValue('cat_image'),
-            'description' => $cat->getValue('cat_description')
-        ];
-    })
-    ->getCategory(5);
-
-if ($category['is_permitted']) {
-    echo '<div class="category-info">';
-    echo '<h1>' . $category['catName'] . '</h1>';
-    if ($category['image']) {
-        echo '<img src="' . $category['image'] . '">';
-    }
-    echo '</div>';
-}
-```
-
-#### 3. Mehrere Kategorien verarbeiten
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-$builder = BuildArray::create()
-    ->setCategoryFilterCallback(function($cat) {
-        return $cat->getValue('show_in_nav') == 1;
-    });
-
-$categories = [
-    $builder->getCategory(3),  // Kategorie mit ID 3
-    $builder->getCategory(4),  // Kategorie mit ID 4
-    $builder->getCategory()    // Aktuelle Kategorie
-];
-
-foreach ($categories as $category) {
-    if ($category['is_permitted']) {
-        echo '<div class="cat-box' . 
-             ($category['current'] ? ' current' : '') . 
-             ($category['active'] ? ' active' : '') . 
-             '">';
-        echo $category['catName'];
-        echo '</div>';
-    }
-}
-```
+Wer gar kein eigenes Markup braucht, nimmt die [Komponente `NavigationMenu`](#komponenten).
+
+## Optionen
+
+Alle Optionen sind benannte Argumente des Konstruktors (`Navigation` ist `readonly`):
+
+| Option | Standard | Wirkung |
+|---|---|---|
+| `start` | `null` | `null` = Start der aktuellen Website (Extension Point [`NavigationStart`](#navigationstart), sonst oberste Ebene), `0` = oberste Ebene, eine ID = deren Unterkategorien, `[1, 5, 12]` = genau diese Kategorien |
+| `depth` | `4` | Ebenen unterhalb der ersten (`0` = nur die erste) |
+| `ignoreOffline` | `true` | Offline-Kategorien und -Artikel weglassen |
+| `exclude` | `[]` | Kategorien samt Unterkategorien weglassen |
+| `filter` | `null` | `fn (Category $cat): bool` – `false` lässt die Kategorie samt Unterkategorien weg |
+| `data` | `null` | `fn (Category $cat): array` – eigene Daten je Eintrag (`$item->data`) |
+| `articles` | `false` | Artikel jeder Kategorie (ohne Startartikel) als `$item->articles` |
+| `languageId` | aktuelle | Sprache der Navigation |
+
+Kategorien ohne Recht fehlen immer: `Category::isPermitted()` des Cores – dort hängen sich Login-AddOns ein.
 
 ## Methoden
 
-### Konstruktor
+| Methode | Ergebnis |
+|---|---|
+| `walk(Closure $callback): string` | Ausgabe, verschachtelt (siehe oben) |
+| `items(): list<NavigationItem>` | die Einträge der ersten Ebene mit ihren Kindern |
+| `find(Category\|int\|null $category = null): ?NavigationItem` | Eintrag der aktuellen oder angegebenen Kategorie mit Kindern – auch außerhalb des Starts |
+| `breadcrumb(Category\|int\|null $category = null, BreadcrumbItem ...$append): list<BreadcrumbItem>` | Pfad von oben bis zur Kategorie – für die aktuelle Seite mit dem aktuellen Artikel am Ende (außer dem Startartikel) –, eigene Einträge danach |
+| `jsonLd(Category\|int\|null $category = null, BreadcrumbItem ...$append): string` | Brotkrumen als `<script type="application/ld+json">` mit absoluten Adressen (auf der Konsole mit `REX_BASE_URL`) |
+
+### `NavigationItem`
+
+| Eigenschaft / Methode | Inhalt |
+|---|---|
+| `id`, `parentId`, `name`, `url` | wie die Kategorie (`parentId` 0 auf oberster Ebene) |
+| `level` | 0 = erste Ebene |
+| `path` | IDs der Elternkategorien |
+| `active` | im Pfad der aktuellen Kategorie |
+| `current` | die aktuelle Kategorie |
+| `children`, `hasChildren()` | Einträge der nächsten Ebene |
+| `articles`, `isArticle()` | Artikel der Kategorie (mit `articles: true`) – ebenfalls `NavigationItem` |
+| `data` | eigene Daten (Option `data`, Extension Point) |
+| `element` | die `Category` (bzw. der `Article`) selbst, z. B. für `getValue()` |
+| `withData(array $data)` | Kopie mit ergänzten Daten |
+
+`json_encode()` funktioniert direkt (`JsonSerializable`), z. B. für eine API oder ein JavaScript-Menü.
+
+## Beispiele
+
+### Eigene Daten und Filter
 
 ```php
-public function __construct(
-    int $start = -1,          // Start-Kategorie ID (-1 für Root/yrewrite)
-    int $depth = 4,           // Maximale Tiefe
-    bool $ignoreOfflines = true, // Offline-Kategorien ignorieren
-    int $level = 0            // Aktuelles Level (intern)
-)
+use Redaxo\Core\Content\Category;
+
+$nav = new Navigation(
+    depth: 2,
+    filter: static fn (Category $cat): bool => 'hidden' !== $cat->getValue('cat_menu'),
+    data: static fn (Category $cat): array => ['icon' => (string) $cat->getValue('cat_icon')],
+);
+
+echo $nav->walk(static fn (NavigationItem $item, Closure $children): string
+    => '<li><a href="' . escape($item->url) . '">' . escape($item->data['icon'] . ' ' . $item->name) . '</a>'
+    . ($item->hasChildren() ? '<ul>' . $children() . '</ul>' : '') . '</li>');
 ```
 
-Erstellt eine neue Instanz der NavigationArray-Klasse.
-
-*   `$start` (`int`, optional): Die ID der Startkategorie. Verwenden Sie `-1` für die YRewrite Mount-ID oder die Root-Kategorie. Standard: `-1`.
-*   `$depth` (`int`, optional): Die maximale Tiefe der Navigation. Standard: `4`.
-*   `$ignoreOfflines` (`bool`, optional): Gibt an, ob Offline-Kategorien ignoriert werden sollen. Standard: `true`.
-
-### Statische Methoden
-
-#### `create()`
+### Unternavigation der aktuellen Hauptkategorie
 
 ```php
-public static function create(): self
+use Redaxo\Core\Content\Category;
+
+$current = Category::getCurrent();
+$main = $current?->path[0] ?? $current?->id;   // Hauptkategorie des aktuellen Zweigs
+
+if (null !== $main) {
+    echo '<ul>' . new Navigation(start: $main, depth: 1)->walk(static fn (NavigationItem $item, Closure $children): string
+        => '<li><a href="' . escape($item->url) . '">' . escape($item->name) . '</a>'
+        . ($item->hasChildren() ? '<ul>' . $children() . '</ul>' : '') . '</li>') . '</ul>';
+}
 ```
 
-Factory-Methode zum einfachen Erstellen einer neuen Instanz.
-
-*   Rückgabewert: Eine neue Instanz von `BuildArray` (`self`).
-
-### Hauptmethoden
-
-#### `generate()`
+### Artikel einbeziehen
 
 ```php
-public function generate(): array
-```
-
-Generiert das Navigations-Array mit allen Kategorien und Unterkategorien basierend auf den konfigurierten Einstellungen.
-
-*   Rückgabewert: Das generierte Navigations-Array (`array`).
-
-#### `toJson()`
-
-```php
-public function toJson(): string
-```
-
-Generiert das Navigations-Array und gibt es als JSON-formatierte Zeichenkette zurück.
-
-*   Rückgabewert: Das generierte Navigations-Array als JSON-String (`string`).
-
-### Setter-Methoden
-
-#### `setExcludedCategories()`
-
-```php
-public function setExcludedCategories(int|array $excludedCategories): self
-```
-
-Legt fest, welche Kategorien von der Navigation ausgeschlossen werden sollen.
-
-*   `$excludedCategories` (`int` oder `array` von `int`): Eine einzelne Kategorie-ID oder ein Array von Kategorie-IDs.
-*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
-
-#### `setStart()`
-
-```php
-public function setStart(int|array $start): self
-```
-
-Setzt die Start-Kategorie(n) für die Navigation.
-
-*   `$start` (`int` oder `array<int>`): Eine einzelne Kategorie-ID, ein Array von Kategorie-IDs oder `-1` für automatischen yrewrite/Root-Start.
-*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
-
-```php
-// Einzelne Start-Kategorie
-BuildArray::create()->setStart(5)->generate();
-
-// Mehrere Start-Kategorien (z. B. für gemischte Navigationen)
-BuildArray::create()->setStart([1, 5, 12])->generate();
-```
-
-#### `setDepth()`
-
-```php
-public function setDepth(int $depth): self
-```
-
-Legt die maximale Tiefe der Navigation fest.
-
-*   `$depth` (`int`): Die maximale Tiefe der Navigation.
-*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
-
-#### `setIgnore()`
-
-```php
-public function setIgnore(int $ignore): self
-```
-
-Legt fest, ob Offline-Kategorien ignoriert werden sollen.
-
-*   `$ignore` (`int`): `true` (1) oder `false` (0) um Offline-Kategorien zu ignorieren.
-*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
-
-#### `setLevel()`
-
-```php
-public function setLevel(int $lvl): self
-```
-
-Setzt das aktuelle Level in der Navigation.
-
-*   `$lvl` (`int`): Das aktuelle Level der Navigation.
-*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
-
-### Callback-Methoden
-
-#### `setCategoryFilterCallback()`
-
-```php
-public function setCategoryFilterCallback(callable $callback): self
-```
-
-Setzt eine Callback-Funktion zum Filtern von Kategorien.
-
-*   `$callback` (`callable`): Eine Funktion, die ein `rex_category` Objekt als Parameter erhält und `true` (für die Aufnahme der Kategorie) oder `false` (für deren Ausschluss) zurückgibt.
-*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
-
-#### `setCustomDataCallback()`
-
-```php
-public function setCustomDataCallback(callable $callback): self
-```
-
-Setzt eine Callback-Funktion zum Hinzufügen benutzerdefinierter Daten.
-
-*   `$callback` (`callable`): Eine Funktion, die ein `rex_category` Objekt als Parameter erhält und ein `array` mit zusätzlichen Daten zurückgibt.
-*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
-
-#### `setIncludeArticles()`
-
-```php
-public function setIncludeArticles(bool $include = true): self
-```
-
-Bezieht Nicht-Start-Artikel jeder Kategorie unter dem Key `articles` in die Ausgabe ein.
-
-*   `$include` (`bool`): Standard: `true`.
-*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
-
-### Breadcrumb & JSON-LD
-
-#### `getBreadcrumb()`
-
-```php
-public function getBreadcrumb(?int $categoryId = null, array $append = []): array
-```
-
-Gibt den Breadcrumb-Pfad von Root bis zur aktuellen (oder angegebenen) Kategorie zurück. Eigene Einträge (z. B. Detailseiten) können über `$append` angehängt werden.
-
-#### `toJsonLd()`
-
-```php
-public function toJsonLd(?int $categoryId = null, array $append = []): string
-```
-
-Gibt einen fertigen `<script type="application/ld+json">`-Tag mit Schema.org `BreadcrumbList` zurück.
-
-### Verwendung von `toJson()`
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-// Grundlegende Verwendung
-$nav = BuildArray::create()->setDepth(3);
-$jsonString = $nav->toJson();
-
-// Mit allen Optionen – toJson() terminiert die Chain und gibt einen string zurück
-$jsonString = BuildArray::create()
-    ->setStart(5)             // Startet bei Kategorie ID 5
-    ->setDepth(2)             // Zwei Ebenen tief
-    ->setIgnore(true)         // Ignoriert Offline-Kategorien
-    ->setExcludedCategories([10, 15]) // Schließt Kategorien aus
-    ->toJson();               // Gibt JSON-String zurück
-
-// JSON ausgeben
-echo $jsonString;
-
-// Direkt als AJAX Response verwenden
-header('Content-Type: application/json');
-echo BuildArray::create()
-    ->setDepth(3)
-    ->toJson();
-
-// JSON decodieren für weitere Verarbeitung
-$nav = BuildArray::create()->setDepth(3);
-$navigationArray = json_decode($nav->toJson(), true);
-```
-
-Das generierte JSON sieht etwa so aus:
-
-```json
-[
-    {
-        "catId": 1,
-        "parentId": 0,
-        "level": 0,
-        "catName": "Home",
-        "url": "/",
-        "hasChildren": true,
-        "children": [
-            {
-                "catId": 5,
-                "parentId": 1,
-                "level": 1,
-                "catName": "Über uns",
-                "url": "/ueber-uns/",
-                "hasChildren": false,
-                "children": [],
-                "path": [1, 5],
-                "active": false,
-                "current": false
-            }
-        ],
-        "path": [1],
-        "active": true,
-        "current": false
-    }
-]
-```
-
-#### `setIncludeArticles()`
-
-```php
-public function setIncludeArticles(bool $include = true): self
-```
-
-Bezieht Nicht-Start-Artikel jeder Kategorie in das Array mit ein. Start-Artikel werden automatisch ausgeblendet. Die Artikel stehen unter dem Key `articles` im jeweiligen Kategorie-Eintrag.
-
-*   `$include` (`bool`): Artikel einbeziehen. Standard: `true`.
-*   Rückgabewert: Die aktuelle Instanz von `BuildArray` (`self`).
-
-```php
-$nav = BuildArray::create()
-    ->setDepth(2)
-    ->setIncludeArticles()
-    ->generate();
-
-// $nav[0]['articles'] = [
-//   ['articleId' => 42, 'catName' => 'Artikel-Titel', 'url' => '/news/artikel/', ...]
-// ]
-```
-
----
-
-## Breadcrumb
-
-### `getBreadcrumb()`
-
-```php
-public function getBreadcrumb(?int $categoryId = null, array $append = []): array
-```
-
-Gibt den Pfad von Root-Ebene bis zur aktuellen (oder angegebenen) Kategorie als flaches Array zurück.
-
-Über `$append` können beliebig viele eigene Einträge am Ende ergänzt werden – ideal für Detailseiten aus dem URL-AddOn, YForm-Datensätze, Shop-Produkte u. ä.
-
-*   `$categoryId` (`int|null`): Zielkategorie, `null` = aktuelle Kategorie.
-*   `$append` (`array`): Zusätzliche Items mit den Keys `name` und `url`.
-
-#### Rückgabe-Array
-
-Jeder Eintrag enthält:
-
-| Key | Typ | Beschreibung |
-|---|---|---|
-| `catId` | `int\|null` | Kategorie-ID oder `null` bei eigenen Einträgen |
-| `catName` | `string` | Name/Titel |
-| `url` | `string` | URL |
-| `current` | `bool` | `true` nur beim letzten Element |
-
-#### Beispiel: Einfacher Breadcrumb
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-$breadcrumb = BuildArray::create()->getBreadcrumb();
-echo '<nav aria-label="breadcrumb"><ol class="breadcrumb">';
-foreach ($breadcrumb as $item) {
-    if ($item['current']) {
-        echo '<li class="breadcrumb-item active" aria-current="page">' . rex_escape($item['catName']) . '</li>';
-    } else {
-        echo '<li class="breadcrumb-item"><a href="' . $item['url'] . '">' . rex_escape($item['catName']) . '</a></li>';
+foreach (new Navigation(depth: 0, articles: true)->items() as $category) {
+    foreach ($category->articles as $article) {
+        // $article->name, $article->url, $article->current …
     }
 }
-echo '</ol></nav>';
 ```
 
-#### Beispiel: Breadcrumb mit Detailseite aus dem URL-AddOn
+### Flache Liste, z. B. eine Sitemap
 
-Wenn auf einer Kategorieseite ein Artikel-Detail (z. B. Shop-Produkt, News) angezeigt wird, kann der Seitentitel als letzter Pfad angehängt werden:
+Wer nichts ausgibt, gibt im Callback `''` zurück und ruft `$children()` auf, um tiefer zu gehen:
 
 ```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
+$urls = [];
+new Navigation(depth: 10)->walk(static function (NavigationItem $item, Closure $children) use (&$urls): string {
+    $urls[] = $item->url;
 
-// Titel und URL des Detail-Artikels – z. B. aus einem yform-Datensatz oder URL-Addon
-$detailTitle = 'Produktname XY';
-$detailUrl   = rex_getUrl(REX_ARTICLE_ID, '', ['product' => 42]);
-
-$breadcrumb = BuildArray::create()->getBreadcrumb(append: [
-    ['name' => $detailTitle, 'url' => $detailUrl],
-]);
-
-echo '<nav aria-label="breadcrumb"><ol class="breadcrumb">';
-foreach ($breadcrumb as $item) {
-    if ($item['current']) {
-        echo '<li class="breadcrumb-item active" aria-current="page">' . rex_escape($item['catName']) . '</li>';
-    } else {
-        echo '<li class="breadcrumb-item"><a href="' . $item['url'] . '">' . rex_escape($item['catName']) . '</a></li>';
-    }
-}
-echo '</ol></nav>';
-```
-
----
-
-## Schema.org JSON-LD
-
-### `toJsonLd()`
-
-```php
-public function toJsonLd(?int $categoryId = null, array $append = []): string
-```
-
-Gibt einen fertigen `<script type="application/ld+json">`-Tag mit einer Schema.org `BreadcrumbList` zurück. Akzeptiert die gleichen Parameter wie `getBreadcrumb()`.
-
-#### Beispiel: JSON-LD im Template-Head
-
-```php
-<?php
-use FriendsOfRedaxo\NavigationArray\BuildArray;
-
-// Für normale Kategorieseiten
-echo BuildArray::create()->toJsonLd();
-
-// Für Detailseiten mit eigenem letzten Pfad
-echo BuildArray::create()->toJsonLd(append: [
-    ['name' => 'Produktname XY', 'url' => rex_getUrl(REX_ARTICLE_ID, '', ['product' => 42])],
-]);
-```
-
-Erzeugte Ausgabe:
-
-```html
-<script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-        {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "/"
-        },
-        {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "News",
-            "item": "/news/"
-        },
-        {
-            "@type": "ListItem",
-            "position": 3,
-            "name": "Produktname XY",
-            "item": "/news/?product=42"
-        }
-    ]
-}
-</script>
-```
-
----
-
-## Extension Point
-
-### `NAVIGATION_ARRAY_GENERATE_ITEM`
-
-Feuert für jedes generierte Navigations-Item. Andere AddOns können so eigene Daten hinzufügen, ohne den `customDataCallback` zu überschreiben.
-
-```php
-rex_extension::register('NAVIGATION_ARRAY_GENERATE_ITEM', function (rex_extension_point $ep) {
-    $item = $ep->getSubject();     // array<string, mixed>
-    $cat  = $ep->getParam('cat'); // rex_category
-    $level = $ep->getParam('level'); // int
-
-    // Beispiel: Kategoriebild aus eigenem Metafeld hinzufügen
-    $item['cat_image'] = $cat->getValue('cat_teaser_image');
-
-    return $item;
+    return $children();
 });
 ```
 
-Der Extension Point wird **nach** dem `customDataCallback` ausgeführt – beide Mechanismen sind kombinierbar.
+### Brotkrumen und strukturierte Daten
 
----
+```php
+use FriendsOfRedaxo\NavigationArray\BreadcrumbItem;
 
-## Autor
+$nav = new Navigation();
 
-**Friends Of REDAXO**
+foreach ($nav->breadcrumb() as $crumb) {
+    echo $crumb->current
+        ? '<span aria-current="page">' . escape($crumb->name) . '</span>'
+        : '<a href="' . escape($crumb->url) . '">' . escape($crumb->name) . '</a> › ';
+}
 
--   <http://www.redaxo.org>
--   <https://github.com/FriendsOfREDAXO>
+// mit eigenem letzten Eintrag, z. B. dem Datensatz einer Detailseite
+echo $nav->jsonLd(null, new BreadcrumbItem($record->get('title'), $detailUrl));
+```
 
-**Projektleitung**
+## Komponenten
 
-[Thomas Skerbis](https://github.com/skerbis)
+Für die häufigsten Fälle bringt das AddOn zwei Komponenten nach dem Muster des Cores mit (`Renderable`, View-Datei
+daneben):
+
+```php
+use FriendsOfRedaxo\NavigationArray\Component\NavigationBreadcrumb;
+use FriendsOfRedaxo\NavigationArray\Component\NavigationMenu;
+
+echo new NavigationMenu(new Navigation(depth: 1), label: 'Hauptmenü', activeClass: 'is-active')->render();
+
+echo new NavigationBreadcrumb(new Navigation(), label: 'Sie sind hier', jsonLd: true)->render();
+```
+
+`NavigationMenu` gibt `<nav><ul>…</ul></nav>` aus, die aktuelle Seite mit `aria-current="page"`. `NavigationBreadcrumb`
+gibt `<nav><ol>…</ol></nav>` aus, auf Wunsch samt JSON-LD; eigene Einträge am Ende über `append: [new BreadcrumbItem(…)]`.
+
+Eigenes Markup: Die View-Dateien lassen sich im Projekt ersetzen, ohne die Klassen anzufassen:
+
+```php
+use Redaxo\Core\View\ViewResolver;
+
+// z. B. in Project::boot()
+ViewResolver::override(NavigationMenu::class, __DIR__ . '/views/navigation-menu.php');
+```
+
+## Extension Points
+
+Extension Points sind wie im Core von REDAXO 6 Klassen – registriert wird mit dem Klassennamen.
+
+### `NavigationItemGenerated`
+
+Jeder Eintrag einer Kategorie, nachdem er gebaut ist. Andere AddOns ergänzen so eigene Daten:
+
+```php
+use FriendsOfRedaxo\NavigationArray\ExtensionPoint\NavigationItemGenerated;
+use Redaxo\Core\ExtensionPoint\Extension;
+
+Extension::register(NavigationItemGenerated::class, static fn (NavigationItemGenerated $ep): NavigationItem
+    => $ep->subject->withData(['badge' => MyShop::countIn($ep->subject->id)]));
+```
+
+### `NavigationStart`
+
+Start einer Navigation ohne `start`: die Kategorie der aktuellen Website, z. B. der Seitenbaum einer Domain. In REDAXO 5
+kam er aus yrewrite; in REDAXO 6 liefert ihn das AddOn, das Domains verwaltet (fluid tut das für Landing-Domains).
+Ohne Extension ist es die oberste Ebene.
+
+```php
+use FriendsOfRedaxo\NavigationArray\ExtensionPoint\NavigationStart;
+
+Extension::register(NavigationStart::class, static fn (NavigationStart $ep): int|array => MyDomains::mountId($ep->articleId) ?? $ep->subject);
+```
+
+Eigenschaften: `subject` (der Start, wie die Option `start`), `articleId`, `languageId`.
+
+## Umstieg von REDAXO 5
+
+Die Version für REDAXO 6 ist neu gebaut. Die Ideen sind dieselben, die API ist eine andere:
+
+| REDAXO 5 | REDAXO 6 |
+|---|---|
+| `BuildArray::create()->setDepth(2)->setExcludedCategories([12])` | `new Navigation(depth: 2, exclude: [12])` |
+| `setStart(-1)` (yrewrite) | `start: null` + Extension Point `NavigationStart` |
+| `setIgnore(1)`, `setIncludeArticles()` | `ignoreOffline: true`, `articles: true` |
+| `setCategoryFilterCallback()`, `setCustomDataCallback()` | `filter:`, `data:` (Closures mit `Category`) |
+| `generate()` – Arrays mit `catId`, `catName`, `url` … | `items()` – `NavigationItem` mit `id`, `name`, `url` … |
+| `walk(fn ($item, $level) => …)` | `walk(fn (NavigationItem $item, Closure $children): string => …)` |
+| `getCategory()` | `find()` |
+| `getBreadcrumb()`, `toJsonLd()` | `breadcrumb()`, `jsonLd()` mit `BreadcrumbItem` |
+| `toJson()` | `json_encode($nav->items())` |
+| Rechte über YCom | `Category::isPermitted()` des Cores |
+| `NAVIGATION_ARRAY_GENERATE_ITEM` | `NavigationItemGenerated` (`$ep->subject->withData()`) |
+| Fragment `navigation_array/navigation.php` | Komponente `NavigationMenu` (Fragmente entfallen in REDAXO 6) |
+
+## Lizenz
+
+MIT – siehe [LICENSE](LICENSE). Ein Projekt von [Friends Of REDAXO](https://friendsofredaxo.github.io).
