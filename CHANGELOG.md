@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Neu gebaut für REDAXO 6 und PHP 8.5 – ohne Rücksicht auf die API von 5.x (siehe „Umstieg von REDAXO 5“ in der README).
 
+### Added
+
+- Metafeld „Nicht in der Navigation zeigen“ für Kategorien (`NavigationMeta`, Spalte `meta_nav_hidden`): Die Navigation
+  lässt markierte Kategorien samt Unterseiten weg, die Seiten bleiben online und an ihrer Stelle; Option
+  `hidden: true` zeigt sie trotzdem.
+
 ### Changed
 
 - Composer-Paket vom Typ `redaxo-addon` (`friendsofredaxo/navigation_array`), Klassen in `src/`.

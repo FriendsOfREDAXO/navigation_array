@@ -56,8 +56,25 @@ Alle Optionen sind benannte Argumente des Konstruktors (`Navigation` ist `readon
 | `data` | `null` | `fn (Category $cat): array` – eigene Daten je Eintrag (`$item->data`) |
 | `articles` | `false` | Artikel jeder Kategorie (ohne Startartikel) als `$item->articles` |
 | `languageId` | aktuelle | Sprache der Navigation |
+| `hidden` | `false` | auch Kategorien mit „Nicht in der Navigation zeigen“ (Metafeld, siehe unten) |
 
 Kategorien ohne Recht fehlen immer: `Category::isPermitted()` des Cores – dort hängen sich Login-AddOns ein.
+
+### „Nicht in der Navigation zeigen“
+
+Das AddOn bringt für Kategorien das Metafeld **„Nicht in der Navigation zeigen“** mit (`NavigationMeta`, Spalte
+`meta_nav_hidden`, für alle Sprachen gleich – im Backend unter Kategorie bearbeiten). Eine so markierte Kategorie bleibt
+online, an ihrer Stelle und mit ihren Unterseiten; nur die Navigation lässt sie samt Unterseiten weg. Brotkrumen enthalten
+sie weiter, die Seite bleibt erreichbar (z. B. eine Aktionsseite oder ein Bereich nur per Link).
+
+```php
+use FriendsOfRedaxo\NavigationArray\NavigationMeta;
+use Redaxo\Core\Content\CategoryHandler;
+
+NavigationMeta::of($category)->navHidden;                                // lesen
+CategoryHandler::edit($id, $languageId, [], ['nav_hidden' => true]);     // setzen
+new Navigation(hidden: true);                                            // markierte trotzdem zeigen
+```
 
 ## Methoden
 

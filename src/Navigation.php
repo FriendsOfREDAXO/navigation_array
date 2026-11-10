@@ -36,7 +36,8 @@ use const JSON_UNESCAPED_UNICODE;
  *     }
  *
  * Offline categories are left out (unless `ignoreOffline: false`), as are categories without permission
- * (`Category::isPermitted()`, e.g. of a login addon).
+ * (`Category::isPermitted()`, e.g. of a login addon) and categories marked „Nicht in der Navigation zeigen“
+ * ({@see NavigationMeta}, unless `hidden: true`).
  */
 final readonly class Navigation
 {
@@ -49,6 +50,7 @@ final readonly class Navigation
      * @param (Closure(Category): array<string, mixed>)|null $data own data of each item (`$item->data`)
      * @param bool $articles include the articles of each category (`$item->articles`, without the start article)
      * @param int|null $languageId language of the navigation (default: the current one)
+     * @param bool $hidden include categories marked „Nicht in der Navigation zeigen“ ({@see NavigationMeta})
      */
     public function __construct(
         public int|array|null $start = null,
@@ -59,6 +61,7 @@ final readonly class Navigation
         public ?Closure $data = null,
         public bool $articles = false,
         public ?int $languageId = null,
+        public bool $hidden = false,
     ) {}
 
     /** @return list<NavigationItem> */
@@ -193,6 +196,7 @@ final readonly class Navigation
     {
         return $category->isPermitted()
             && !in_array($category->id, $this->exclude, true)
+            && ($this->hidden || !NavigationMeta::of($category)->navHidden)
             && (null === $this->filter || ($this->filter)($category));
     }
 
